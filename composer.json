@@ -1,0 +1,25 @@
+{
+   "name": "arthega-asdweri/phoenix-php",
+   "type": "library",
+   "description": "Simple and fast PHP Framework with Vue",
+   "keywords": [
+      "php",
+      "framework",
+      "vue"
+   ],
+   "homepage": "https://www.phoenix-php.org",
+   "authors": [
+      {
+         "name": "Daniel Hahn",
+         "email": "daniel@hahn-webdesign.de"
+      }
+   ],
+   "require": {
+      "php": ">=8.0.0"
+   },
+   "autoload": {
+      "psr-4": {
+         "PhoenixPhp": "src"
+      }
+   }
+}
