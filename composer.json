@@ -21,5 +21,6 @@
       "psr-4": {
          "PhoenixPhp\\": "src"
       }
-   }
+   },
+   "license": "GPL-3.0+"
 }
