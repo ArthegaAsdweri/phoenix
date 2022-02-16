@@ -62,11 +62,11 @@ class Request
     //---- GENERAL METHODS
 
     /**
-     * Diese Methode holt alle Request-Parameter aus dem Request-Array (außer den controller-relevanten)
+     * returns all request parameters
      *
-     * @param bool $withController true, wenn die Controller-relevanten Parameter gewünscht sind, false wenn nicht
+     * @param bool $withController true: also returns the framework relevant parameters, false: does not
      *
-     * @return ?array $array          Alle Request-Parameter oder null, wenn keine vorhanden sind
+     * @return ?array $array all parameters or null if none exist
      */
     public function retrieveParameters(bool $withController = false): ?array
     {
@@ -83,13 +83,13 @@ class Request
     }
 
     /**
-     * Diese Methode holt einen Parameter aus dem Request-Array
+     * retrieves a parameter
      *
-     * @param string $parameter Der übergebene Post-Wert des Parameters
+     * @param string $parameter key (name) of the parameter
      *
-     * @return mixed $parameter   Der Wert des Parameters oder null, wenn er nicht vorhanden ist
+     * @return bool|string|int|null $parameter value of the parameter or null if not it does not exist
      */
-    public function retrieveParameter(string $parameter)
+    public function retrieveParameter(string $parameter): bool|string|int|null
     {
         if (isset($this->request[$parameter]) && $this->request[$parameter] !== '') {
             return $this->request[$parameter];
@@ -98,9 +98,9 @@ class Request
     }
 
     /**
-     * Diese Methode speichert zusätzliche Parameter in das Request-Objekt
+     * saves additional parameters inside the object
      *
-     * @param array $parameters Ein Array von zusätzlichen Parametern
+     * @param array $parameters array of additional parameters
      */
     public function putParameters(array $parameters): void
     {
@@ -110,12 +110,12 @@ class Request
     }
 
     /**
-     * Diese Methode speichert einen zusätzlichen Parameter in das Request-Objekt
+     * saves one additional parameter inside the object
      *
-     * @param string $key Der Key
-     * @param $value
+     * @param string $key
+     * @param bool|string|int $value
      */
-    public function putParameter(string $key, $value): void
+    public function putParameter(string $key, bool|string|int $value): void
     {
         $request = $this->getRequest();
         $request[$key] = $value;
@@ -123,7 +123,7 @@ class Request
     }
 
     /**
-     * Diese Methode löscht alle Parameter aus dem Request-Objekt, sodass es erneut befüllt werden kann
+     * removes all parameters from the object
      */
     public function deleteAllParameters(): void
     {

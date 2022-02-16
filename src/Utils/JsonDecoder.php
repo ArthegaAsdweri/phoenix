@@ -2,8 +2,6 @@
 
 namespace PhoenixPhp\Utils;
 
-use PhoenixPhp\Core\Logger;
-
 class JsonDecoder
 {
 
