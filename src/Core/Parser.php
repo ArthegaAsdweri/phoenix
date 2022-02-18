@@ -25,9 +25,9 @@ class Parser
      */
     public function __construct(string $fileName, ?string $subTemplate = null)
     {
-        $fileName = stream_resolve_include_path($fileName);
-        if (is_file($fileName)) {
-            $fileContent = file_get_contents($fileName);
+        $fileInclude = stream_resolve_include_path($fileName);
+        if (is_file($fileInclude)) {
+            $fileContent = file_get_contents($fileInclude);
 
             if ($subTemplate !== null) {
                 $tag = '{[{' . $subTemplate . '}]}';
@@ -45,7 +45,7 @@ class Parser
 
             $this->setOriginal($fileContent);
             $this->setParsed($fileContent);
-            $this->setFileName($fileName);
+            $this->setFileName($fileInclude);
         } else {
             throw new Exception('file "' . $fileName . '" does not exist.');
         }

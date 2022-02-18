@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/cache/{{CSS_INCLUDES}}.css">
+    <link rel="Shortcut Icon" type="image/x-icon" href="/res/pics/favicon.ico"/>
+
+    {{VUETIFY_CSS}}
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x{{VUE_DEVELOPMENT_URL}}"></script>
+</head>
+<body>
+
+<div id="phoenix">
+    {{WRAPPER_CONTENT}}
+    {{DEBUG_CONTENT}}
+</div>
+
+
+{{VUETIFY_JS}}
+{{AXIOS_JS}}
+{{EXTERNAL_JS}}
+<script src="/cache/{{JS_INCLUDES}}.js"></script>
+<script type="application/javascript">
+    //{{DEVELOPMENT}}
+
+    var phDebugConsole = {};
+
+    //{{JS_INLINE}}
+    //{{VUE_COMPONENTS}}
+    //{{VUE_MIXIN}}
+
+    Vue.directive('focus', {
+        inserted: function (el) {
+            el.focus()
+        }
+    });
+
+    var vm = new Vue({
+        el: '#phoenix',
+        components: {
+            'ph-debug-console': phDebugConsole
+        },
+        data: {
+            ajaxRequests: []
+        }
+        //{{IN_MIXINS}}
+        //{{VUETIFY_INIT}}}
+    });
+</script>
+</body>
+</html>

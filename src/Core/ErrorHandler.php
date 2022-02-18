@@ -30,7 +30,7 @@ class ErrorHandler
      * @param array|null $context
      * @return true
      */
-    public static function handleError(int $errno, string $errmsg, string $errfile, int $errline, ?array $context): bool
+    public static function handleError(int $errno, string $errmsg, string $errfile, int $errline, ?array $context = null): bool
     {
         $trace = $errmsg . PHP_EOL;
         $trace .= 'source: ' . $errfile . ' (line ' . $errline . ')';
