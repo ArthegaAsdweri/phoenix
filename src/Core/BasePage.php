@@ -164,21 +164,21 @@ abstract class BasePage
 
 
     /**
-     * Diese Funktion registriert eine CSS-Datei, die geladen werden soll
-     *
-     * @param string $path Pfad zur CSS-Datei
+     * registers a css file
+     * @param string $path path to the file
      */
     final protected function registerCss(string $path): void
     {
         $cssFiles = $this->getCssFiles();
 
-        //Wurde die Datei bereits registriert?
+        //disable duplicate includes
         foreach ($cssFiles as $value) {
             if ($value === $path) {
                 return;
             }
         }
 
+        $path = 'Resources/Css/' . $path;
         if (!stream_resolve_include_path($path)) {
             throw new Exception('Die Datei ' . $path . ' existiert nicht.');
         }
@@ -244,6 +244,20 @@ abstract class BasePage
     }
 
     /**
+     * determines the project path
+     * @return string
+     */
+    private function retrieveDirectoryPath()
+    {
+        $includedFiles = get_included_files();
+        $firstFile = $includedFiles[0];
+        $partArray = explode('/', $firstFile);
+        $length = count($partArray);
+        unset($partArray[$length - 1]);
+        return implode('/', $partArray);
+    }
+
+    /**
      * Diese Methode rendert die CSS-Dateien in eine einzelne Datei und gibt ihren Namen zurück, damit sie als Pfad
      * geparst werden kann.
      *
@@ -255,10 +269,6 @@ abstract class BasePage
         $cssFileString = '';
         $cssContent = '';
         foreach ($cssFiles as $cssFile) {
-            //Lokal immer die Entwickler-CSS-Dateien laden
-            if (getenv('DEVELOPER')) {
-                $cssFile = str_replace('/css/', '/devcss/', $cssFile);
-            }
             $cssFileString .= $cssFile;
             $cssContent .= file_get_contents(stream_resolve_include_path($cssFile));
         }
@@ -271,10 +281,10 @@ abstract class BasePage
 
         $md5String = md5($cssFileString);
 
-        #$fp = fopen('/srv/www/media/cache/'.$md5String.'.css', 'w');
-        #fwrite($fp, $cssContent);
-        #fclose($fp);
-
+        $projectPath = $this->retrieveDirectoryPath();
+        $fp = fopen($projectPath . '/src/Resources/Cache/' . $md5String . '.css', 'w');
+        fwrite($fp, $cssContent);
+        fclose($fp);
         return $md5String;
     }
 

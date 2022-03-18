@@ -35,7 +35,7 @@ class Parser
                     throw new Exception('subtemplate ' . $tag . ' does not exist in ' . $fileName . '.');
                 }
 
-                $closingTag = str_replace("{{", "{{/", $tag);
+                $closingTag = str_replace("{[{", "{[{/", $tag);
                 $pos1 = strpos($fileContent, $tag);
                 $pos2 = strpos($fileContent, $closingTag);
                 $startPos = $pos1 + strlen($tag);

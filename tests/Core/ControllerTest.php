@@ -41,8 +41,10 @@ class ControllerTest extends TestCase
     }
 
     /**
+     * @runInSeparateProcess
      * @covers ::__construct
      * @covers ::setDebugMode
+     * @covers ::isDebugMode
      */
     public function testConstruct_WithDebugMode_ReturnsPage(): void
     {
@@ -56,6 +58,31 @@ class ControllerTest extends TestCase
         $controller = new Controller();
         $pageContent = $controller->render();
         $this->assertStringContainsString("WRAPPER\r\nDefault.html\r\nWRAPPER", $pageContent);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @covers ::utilizeConfig
+     */
+    public function testConstruct_WithLocalConfig_ReturnsPage(): void
+    {
+        file_put_contents('tests/config/config.yml', '
+Config:
+  TEST: test
+  
+Aliases:
+  test:
+    - testalias');
+        $stream = new TestStream();
+        $request = Request::getInstance($stream);
+        $request->putParameters([
+            'requestPage' => 'test'
+        ]);
+        $controller = new Controller();
+        $pageContent = $controller->render();
+        $this->assertStringContainsString("WRAPPER\r\nDefault.html\r\nWRAPPER", $pageContent);
+        $this->assertEquals('test', PHPHP_TEST);
+        unlink('tests/config/config.yml');
     }
 
     /**

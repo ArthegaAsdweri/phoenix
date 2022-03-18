@@ -23,7 +23,7 @@ abstract class BaseWrapper extends BasePage
     //---- GENERAL METHODS
 
     /**
-     * Diese Methode generiert den Pfad zum Template und speichert ihn abrufbar im Objekt
+     * generates the path to the template and stores it inside the object
      */
     public function generateTemplate(): void
     {
@@ -39,6 +39,10 @@ abstract class BaseWrapper extends BasePage
         $this->setSubTemplatePath($templatePath);
     }
 
+    /**
+     * calls the page contents and converts them into the object for later use
+     * @param BasePage $pageContent
+     */
     final public function renderPage($pageContent)
     {
         $this->setPageContent($pageContent->render());
@@ -50,9 +54,8 @@ abstract class BaseWrapper extends BasePage
     }
 
     /**
-     * Diese Methode gibt den Inhalt der Aktion zurück.
-     *
-     * @return string    Der Inhalt der Seite
+     * returns the page contents inside the wrapper
+     * @return string
      */
     public function render(): string
     {
@@ -60,7 +63,7 @@ abstract class BaseWrapper extends BasePage
         $this->generateTemplate();
         $wrapperContent = $this->parseContent();
 
-        //Jetzt die Vue-Components durchlaufen
+        //loop through the vue components
         $this->parseVueComponents();
         $components = $this->getVueComponents();
 
@@ -83,7 +86,7 @@ abstract class BaseWrapper extends BasePage
 
         $componentCount = count($components);
 
-        //Developer Konsole
+        //developer console
         if (getenv('DEVELOPER')) {
             $debugConsole = $this->callGlobalModule('debugger');
             $debugConsole->setDebugMode($this->getDebugMode());
@@ -111,7 +114,7 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse('MAIN_MIXINS', ',' . PHP_EOL . 'mixins: [' . implode(PHP_EOL, $mainMixins) . ']');
         }
 
-        //dann Includes rendern
+        //render includes
         $cssString = $this->renderCss();
         $jsString = $this->renderJs();
         $jsExString = $this->renderExternalJs();
@@ -128,31 +131,31 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse('VUE_DEVELOPMENT', 'Vue.config.devtools = true;');
         }
 
-        if (defined('VUETIFY') && VUETIFY === true) {
-            $vuetifyJs = new Parser('tpl_index_sub.html', 'VUETIFY_JS');
-            $vuetifyCss = new Parser('tpl_index_sub.html', 'VUETIFY_CSS');
+        if (defined('PHPHP_VUETIFY') && PHPHP_VUETIFY === true) {
+            $vuetifyJs = new Parser(__DIR__ . '/../IndexSub.html', 'VUETIFY_JS');
+            $vuetifyCss = new Parser(__DIR__ . '/../IndexSub.html', 'VUETIFY_CSS');
             $tplIndex->parse('VUETIFY_JS', $vuetifyJs->retrieveTemplate());
             $tplIndex->parse('VUETIFY_CSS', $vuetifyCss->retrieveTemplate());
 
             $vuetifyTheme = '';
-            if (defined('VUETIFY_THEME')) {
+            if (defined('PHPHP_VUETIFY_THEME')) {
                 $vuetifyTheme = '
                     theme: {
-                    ' . VUETIFY_THEME . ':true
+                        ' . PHPHP_VUETIFY_THEME . ':true
                     }
                 ';
             }
 
             $tplIndex->parse(
                 'VUETIFY_INIT',
-                ',
-                vuetify: new Vuetify({' . $vuetifyTheme . '})
+                '
+                , vuetify: new Vuetify({' . $vuetifyTheme . '})
             '
             );
         }
 
-        if (defined('AXIOS') && AXIOS === true) {
-            $axiosJs = new Parser('tpl_index_sub.html', 'AXIOS_JS');
+        if (defined('PHPHP_AXIOS') && PHPHP_AXIOS === true) {
+            $axiosJs = new Parser(__DIR__ . '/../IndexSub.html', 'AXIOS_JS');
             $tplIndex->parse('AXIOS_JS', $axiosJs->retrieveTemplate());
         }
 

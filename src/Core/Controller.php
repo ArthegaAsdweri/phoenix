@@ -2,6 +2,7 @@
 
 namespace PhoenixPhp\Core;
 
+use PhoenixPhp\PageWrapper\PageWrapper;
 use PhoenixPhp\Utils\StringConversion;
 use Symfony\Component\Yaml\Yaml;
 
@@ -56,7 +57,7 @@ class Controller
 
         $includePath = stream_resolve_include_path('config/config.yml');
         if ($includePath !== false) {
-            $localConf = Yaml::parseFile('config/config.yml');
+            $localConf = Yaml::parseFile($includePath);
             if (isset($localConf['Config'])) {
                 foreach ($localConf['Config'] as $constKey => $constValue) {
                     if (!defined($constKey)) {
@@ -124,11 +125,9 @@ class Controller
     }
 
     /**
-     * Diese Methode ermittelt, ob die aufgerufene Seite ein Alias für eine System-Seite ist.
-     *
-     * @param string $page Die aufgerufene Seite
-     *
-     * @return string $aliasPage    Die "wirkliche" Seite oder die ursprüngliche, wenn es sich nicht um ein Alias handelt
+     * determines an optional alias for the page
+     * @param string $page name of the page
+     * @return string $aliasPage the real page if the called page is an alias or the initial page if not
      */
     private function retrieveAliasForPage(string $page): string
     {
@@ -144,13 +143,10 @@ class Controller
     }
 
     /**
-     * Diese Methode ermittelt das Directory
-     *
-     * @param bool $global Soll im globalen Shopsystem gesucht werden?
-     *
-     * @return string         Der generierte Pfad mit aktueller Seite und Action
+     * determines the directory path
+     * @return string generated path with page and its action
      */
-    private function retrieveDir(bool $global = false): string
+    private function retrieveDir(): string
     {
         $page = ucfirst($this->getPage());
         $action = ucfirst($this->getAction());
@@ -167,15 +163,12 @@ class Controller
     }
 
     /**
-     * Diese Methode prüft, ob eine gesuchte Klasse existiert
-     *
-     * @param bool $global Soll im globalen Shopsystem gesucht werden?
-     *
-     * @return bool           true wenn die Datei existiert, false wenn nicht
+     * determines whether the called file exists
+     * @return bool true: the file exists, false: the file does not exist
      */
-    private function checkFile(bool $global = false): bool
+    private function checkFile(): bool
     {
-        $actionFile = $this->retrieveDir($global);
+        $actionFile = $this->retrieveDir();
         if (stream_resolve_include_path($actionFile)) {
             return true;
         }
@@ -223,7 +216,7 @@ class Controller
         //---- GLOBALE KLASSE NICHT GEFUNDEN -> DEFAULT KLASSE ?
 
         if (!$fileCheck) {
-            $this->setPage('not_found');
+            $this->setPage('oops');
             $fileCheck = $this->checkFile();
         }
 
@@ -241,13 +234,15 @@ class Controller
         $globalClassName = '\PhoenixPhp' . $classString;
         $path = $this->retrieveDir();
 
+
         //framework class
         if (stream_resolve_include_path($path)) {
             try {
                 $class = new $globalClassName();
                 $class->setCalledPage($this->getCalledPage());
                 $class->setCalledAction($originalAction);
-            } catch (Exception $e) {
+            }
+            catch (\Error $e) {
                 $className = PHPHP_PSR_NAMESPACE . $classString;
                 $class = new $className();
                 $class->setCalledPage($this->getCalledPage());
@@ -333,11 +328,14 @@ class Controller
             $content = $this->callAjax();
         } else {
             $path = 'PageWrapper/PageWrapper.php';
+            if (defined('PHPHP_FILE_ROOT')) {
+                $path = PHPHP_FILE_ROOT . '/PageWrapper/PageWrapper.php';
+            }
 
             if (stream_resolve_include_path($path)) {
                 try {
-                    $wrapperContent = new \PhoenixPhp\PageWrapper\PageWrapper;
-                } catch (Exception $e) {
+                    $wrapperContent = new PageWrapper;
+                } catch (\Error $e) {
                     $className = PHPHP_PSR_NAMESPACE . '\PageWrapper\PageWrapper';
                     $wrapperContent = new $className;
                 }
