@@ -122,7 +122,7 @@ abstract class BaseWrapper extends BasePage
 
         $tplIndex->parse('CSS_INCLUDES', $cssString);
         $tplIndex->parse('JS_INCLUDES', $jsString);
-        $tplIndex->parse('VUE_COMPONENTS', $vueString);
+        $tplIndex->parse('VUE_COMPONENTS', PHP_EOL.$vueString);
         $tplIndex->parse('EXTERNAL_JS', $jsExString);
         $tplIndex->parse('JS_INLINE', $jsInline);
 

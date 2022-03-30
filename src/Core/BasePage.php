@@ -91,13 +91,13 @@ abstract class BasePage
      * @param string $componentName Der Name der Komponente
      * @param bool $childComponent true: es handelt sich um eine Kindkomponente, die nicht global regisrtiert wird
      * @param null|string $mixin LOCAL = lokales Mixin, GLOBAL = globales Mixin (für alle Components), VUE = nur für die Haupt-Instanz     *
-     * @return VueComponent|null       Die Komponente oder null, falls sie nicht gefunden wurde
+     * @return Component|null       Die Komponente oder null, falls sie nicht gefunden wurde
      */
     final protected function registerVueComponent(
         string $componentName,
         bool $childComponent = false,
         ?string $mixin = null
-    ): ?VueComponent {
+    ): ?Component {
         $pageArray = $this->retrievePageArray();
         $project = $pageArray['project'];
         $page = $pageArray['page'];
@@ -119,7 +119,7 @@ abstract class BasePage
         }
 
         if ($found || $found2) {
-            $component = new VueComponent($componentPath);
+            $component = new Component($componentPath);
             $component->setName($componentName);
             $component->setIsChild($childComponent);
 
