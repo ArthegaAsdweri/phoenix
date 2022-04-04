@@ -19,6 +19,13 @@ class StringConversion
                 $tmpString .= ucfirst($part);
             }
             $string = lcfirst($tmpString);
+        } elseif (stristr($string, '-')) {
+            $tmpString = '';
+            $tmpParts = explode('-', $string);
+            foreach ($tmpParts as $part) {
+                $tmpString .= ucfirst($part);
+            }
+            $string = lcfirst($tmpString);
         }
         return $string;
     }
@@ -28,12 +35,13 @@ class StringConversion
      * @param string $string camelCased string
      * @return string $string snake_cased string
      */
-    public static function toSnakeCase(string $string): string
-    {
+    public
+    static function toSnakeCase(
+        string $string
+    ): string {
         if (!stristr($string, '_')) {
             $string = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $string));
         }
         return $string;
     }
-
 }

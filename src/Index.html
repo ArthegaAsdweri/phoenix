@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/src/Resources/Cache/{{CSS_INCLUDES}}.css">
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.x{{VUE_DEVELOPMENT_URL}}"></script>
+    <script src="https://unpkg.com/vue-observe-visibility/dist/vue-observe-visibility.min.js"></script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
@@ -23,19 +24,13 @@
 {{EXTERNAL_JS}}
 <script src="/cache/{{JS_INCLUDES}}.js"></script>
 <script type="application/javascript">
-    //{{DEVELOPMENT}}
+    //{{VUE_DEVELOPMENT}}
 
     var phDebugConsole = {};
 
     //{{JS_INLINE}}
     //{{VUE_COMPONENTS}}
     //{{VUE_MIXIN}}
-
-    Vue.directive('focus', {
-        inserted: function (el) {
-            el.focus()
-        }
-    });
 
     var vm = new Vue({
         el: '#phoenix',

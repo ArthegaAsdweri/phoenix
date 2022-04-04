@@ -45,7 +45,7 @@ class Component extends Parser
             $script = preg_replace('/export default {\s*name: /', 'Vue.component(', $script);
             $script = str_replace(
                 'Vue.component("' . $camelName . '",',
-                'Vue.component("' . $snakeName . '", {',
+                'Vue.component("' . $camelName . '", {',
                 $script
             );
             $bracket = ')';

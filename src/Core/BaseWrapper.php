@@ -2,6 +2,8 @@
 
 namespace PhoenixPhp\Core;
 
+use PhoenixPhp\Utils\StringConversion;
+
 /**
  * wrapper for a whole set of pages
  */
@@ -86,7 +88,7 @@ abstract class BaseWrapper extends BasePage
 
         $componentCount = count($components);
 
-        //developer console
+        /*developer console
         if (getenv('DEVELOPER')) {
             $debugConsole = $this->callGlobalModule('debugger');
             $debugConsole->setDebugMode($this->getDebugMode());
@@ -105,9 +107,10 @@ abstract class BaseWrapper extends BasePage
                 $vueString .= $component->getVScript();
             }
         }
+        */
 
         if (count($globalMixins) > 0) {
-            $tplIndex->parse('VUE_MIXIN', implode(PHP_EOL, $globalMixins));
+            $tplIndex->parse('VUE_MIXIN', PHP_EOL . implode(PHP_EOL, $globalMixins));
         }
 
         if (count($mainMixins) > 0) {
@@ -122,7 +125,7 @@ abstract class BaseWrapper extends BasePage
 
         $tplIndex->parse('CSS_INCLUDES', $cssString);
         $tplIndex->parse('JS_INCLUDES', $jsString);
-        $tplIndex->parse('VUE_COMPONENTS', PHP_EOL.$vueString);
+        $tplIndex->parse('VUE_COMPONENTS', PHP_EOL . $vueString);
         $tplIndex->parse('EXTERNAL_JS', $jsExString);
         $tplIndex->parse('JS_INLINE', $jsInline);
 

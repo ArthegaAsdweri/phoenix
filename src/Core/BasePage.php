@@ -139,13 +139,13 @@ abstract class BasePage
     }
 
     /**
-     * Diese Methode registriert eine Vue-Komponente, die als Mixin zur Verfügung steht.
+     * registers a vue mixin
      *
-     * @param string $componentName der Name der Komponente
-     * @param bool $global true: das Mixin wird für alle Komponenten zur Verfügung gestellt, false: das Mixin muss gesondert eingebunden werden
-     * @return VueComponent|null       Die Komponente oder null, falls sie nicht gefunden wurde
+     * @param string $componentName name of the component
+     * @param bool $global true: mixin will be accessable for all components false: mixin must be included manually
+     * @return Component|null component or null if not valid
      */
-    final protected function registerVueMixin(string $componentName, bool $global = false): ?VueComponent
+    final protected function registerVueMixin(string $componentName, bool $global = false): ?Component
     {
         $mixin = ($global) ? 'GLOBAL' : 'LOCAL';
         return $this->registerVueComponent($componentName, true, $mixin);
