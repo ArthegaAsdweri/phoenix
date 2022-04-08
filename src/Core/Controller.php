@@ -66,7 +66,6 @@ class Controller
                 }
             }
         }
-
         if (isset($localConf['Aliases'])) {
             define('PHPHP_ALIASES', $localConf['Aliases']);
         }
@@ -102,8 +101,8 @@ class Controller
             $this->setAjaxCall(true);
         }
 
-        if (defined('ALIASES')) {
-            $this->setAliases(ALIASES);
+        if (defined('PHPHP_ALIASES')) {
+            $this->setAliases(PHPHP_ALIASES);
         }
 
         $this->setCalledPage($page);
@@ -182,8 +181,7 @@ class Controller
      */
     private function callPage()
     {
-        //---- ALIAS? DANN RICHTIGE SEITE ERMITTELN
-
+        //was the link an alias?
         $aliasPage = $this->retrieveAliasForPage($this->getPage());
         if ($aliasPage !== $this->getPage()) {
             $this->setPage($aliasPage);
@@ -191,16 +189,14 @@ class Controller
 
         $originalAction = $this->getAction();
 
-        //---- ORIGINAL-REQUEST
-
+        //"real" page name request
         $fileCheck = $this->checkFile();
         if (!$fileCheck && $this->getAction() !== 'default') {
             $this->setAction('default');
             $fileCheck = $this->checkFile();
         }
 
-        //---- NICHT GEFUNDEN -> DEFAULT KLASSE ?
-
+        //action not found - default action?
         if (!$fileCheck) {
             $this->setAction($originalAction);
             $fileCheck = $this->checkFile(true);
@@ -220,20 +216,17 @@ class Controller
             $fileCheck = $this->checkFile();
         }
 
-        //---- ALLES FEHLGESCHLAGEN -> 404 SEITE
-
+        //everything failed - 404
         if (!$fileCheck) {
             $this->checkFile(true);
             $this->setStatusCode404();
         }
 
-        //---- UND JETZT RENDERN :)
-
+        //rendering
         $classPage = ucfirst(StringConversion::toCamelCase($this->getPage()));
         $classString = '\Pages\\' . $classPage . '\\' . ucfirst($this->getAction() . 'Action');
         $globalClassName = '\PhoenixPhp' . $classString;
         $path = $this->retrieveDir();
-
 
         //framework class
         if (stream_resolve_include_path($path)) {
@@ -241,8 +234,7 @@ class Controller
                 $class = new $globalClassName();
                 $class->setCalledPage($this->getCalledPage());
                 $class->setCalledAction($originalAction);
-            }
-            catch (\Error $e) {
+            } catch (\Error $e) {
                 $className = PHPHP_PSR_NAMESPACE . $classString;
                 $class = new $className();
                 $class->setCalledPage($this->getCalledPage());
