@@ -23,7 +23,7 @@ class Component extends Parser
     //---- GENERAL METHODS
 
     /**
-     * Diese Methode rendert die Komponente und befüllt die entsprechenden Properties sortiert nach JS und CSS
+     * renders the component and fills the style and script tags for separation
      */
     public function renderComponent()
     {

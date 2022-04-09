@@ -22,6 +22,10 @@ abstract class BasePage
     protected array $vueComponents = [];
     protected bool $debugMode = false;
 
+    protected string $title = 'Page Title';
+    protected string $description = 'Page Description';
+    protected ?string $additionalMeta = null;
+
 
     //---- ABSTRACT METHODS
 
@@ -106,8 +110,8 @@ abstract class BasePage
             $componentPath = 'mixins/' . $componentName . '.vue';
             $componentPath2 = $project . 'mixins/' . $componentName . '.vue';
         } else {
-            $componentPath = 'pages/' . $page . '/components/' . $componentName . '.vue';
-            $componentPath2 = $project . 'pages/' . $page . '/components/' . $componentName . '.vue';
+            $componentPath = 'Pages/' . $page . '/Components/' . $componentName . '.vue';
+            $componentPath2 = $project . 'Pages/' . $page . '/Components/' . $componentName . '.vue';
         }
 
         $found = stream_resolve_include_path($componentPath);
@@ -587,5 +591,52 @@ abstract class BasePage
         $this->debugMode = $debugMode;
     }
 
+    /**
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    /**
+     * @param string $title
+     */
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param string $description
+     */
+    public function setDescription(string $description): void
+    {
+        $this->description = $description;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getAdditionalMeta(): ?string
+    {
+        return $this->additionalMeta;
+    }
+
+    /**
+     * @param string|null $additionalMeta
+     */
+    public function setAdditionalMeta(?string $additionalMeta): void
+    {
+        $this->additionalMeta = $additionalMeta;
+    }
 
 }

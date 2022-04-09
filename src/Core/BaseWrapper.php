@@ -13,6 +13,7 @@ abstract class BaseWrapper extends BasePage
     //---- MEMBERS
 
     private string $pageContent;
+    protected string $title;
 
 
     //---- ABSTRACT METHODS
@@ -48,6 +49,8 @@ abstract class BaseWrapper extends BasePage
     final public function renderPage($pageContent)
     {
         $this->setPageContent($pageContent->render());
+        $this->setTitle($pageContent->getTitle());
+        $this->setDescription($pageContent->getDescription());
         $this->setVueComponents($pageContent->getVueComponents());
         $this->setCssFiles($pageContent->getCssFiles());
         $this->setJsFiles($pageContent->getJsFiles());
@@ -160,6 +163,19 @@ abstract class BaseWrapper extends BasePage
         if (defined('PHPHP_AXIOS') && PHPHP_AXIOS === true) {
             $axiosJs = new Parser(__DIR__ . '/../IndexSub.html', 'AXIOS_JS');
             $tplIndex->parse('AXIOS_JS', $axiosJs->retrieveTemplate());
+        }
+
+        $language = 'en-EN';
+        if (defined('PHPHP_LANGUAGE')) {
+            $language = PHPHP_LANGUAGE;
+        }
+
+        $tplIndex->parse('LANGUAGE', $language);
+        $tplIndex->parse('TITLE', $this->getTitle());
+        $tplIndex->parse('DESCRIPTION', $this->getDescription());
+
+        if ($this->getAdditionalMeta() !== null) {
+            $tplIndex->parse('ADDITIONAL_META', $this->getAdditionalMeta());
         }
 
         $tplIndex->parse('WRAPPER_CONTENT', $wrapperContent);
