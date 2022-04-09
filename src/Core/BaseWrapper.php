@@ -178,6 +178,17 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse('ADDITIONAL_META', $this->getAdditionalMeta());
         }
 
+        if (defined('PHPHP_GOOGLE')) {
+            $google = PHPHP_GOOGLE;
+            if (isset($google['ANALYTICS']) && $google['ANALYTICS'] === true) {
+                if (isset($google['ANALYTICS_ID'])) {
+                    $googleAnalytics = new Parser(__DIR__ . '/../IndexSub.html', 'GOOGLE_ANALYTICS');
+                    $googleAnalytics->parse('GOOGLE_ANALYTICS_ID', $google['ANALYTICS_ID']);
+                    $tplIndex->parse('GOOGLE_ANALYTICS', $googleAnalytics->retrieveTemplate());
+                }
+            }
+        }
+
         $tplIndex->parse('WRAPPER_CONTENT', $wrapperContent);
 
         return $tplIndex->retrieveTemplate();
