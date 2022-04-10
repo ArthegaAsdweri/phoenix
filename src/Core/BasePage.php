@@ -25,6 +25,7 @@ abstract class BasePage
     protected string $title = 'Page Title';
     protected string $description = 'Page Description';
     protected ?string $additionalMeta = null;
+    protected ?string $additionalBodyScripts = null;
 
 
     //---- ABSTRACT METHODS
@@ -637,6 +638,22 @@ abstract class BasePage
     public function setAdditionalMeta(?string $additionalMeta): void
     {
         $this->additionalMeta = $additionalMeta;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAdditionalBodyScripts(): string
+    {
+        return $this->additionalBodyScripts;
+    }
+
+    /**
+     * @param string $additionalBodyScripts
+     */
+    public function setAdditionalBodyScripts(string $additionalBodyScripts): void
+    {
+        $this->additionalBodyScripts = $additionalBodyScripts;
     }
 
 }

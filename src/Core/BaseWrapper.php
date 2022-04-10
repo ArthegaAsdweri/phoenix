@@ -190,6 +190,7 @@ abstract class BaseWrapper extends BasePage
         }
 
         $tplIndex->parse('WRAPPER_CONTENT', $wrapperContent);
+        $tplIndex->parse('ADDITIONAL_BODY_SCRIPTS', $this->getAdditionalBodyScripts());
 
         return $tplIndex->retrieveTemplate();
     }
