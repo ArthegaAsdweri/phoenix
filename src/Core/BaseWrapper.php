@@ -56,6 +56,8 @@ abstract class BaseWrapper extends BasePage
         $this->setJsFiles($pageContent->getJsFiles());
         $this->setExternalJsFiles($pageContent->getExternalJsFiles());
         $this->setInlineJs($pageContent->getInlineJs());
+        $this->setCalledPage($pageContent->getCalledPage());
+        $this->setCalledAction($pageContent->getCalledAction());
     }
 
     /**
@@ -187,6 +189,19 @@ abstract class BaseWrapper extends BasePage
                     $tplIndex->parse('GOOGLE_ANALYTICS', $googleAnalytics->retrieveTemplate());
                 }
             }
+        }
+
+        $canonical = new Parser(__DIR__ . '/../IndexSub.html', 'CANONICAL');
+        if (defined('PHPHP_DOMAIN')) {
+            $domain = PHPHP_DOMAIN;
+            if($this->getCalledPage() !== null && $this->getCalledPage() !== 'home') {
+                $domain .= '/'.$this->getCalledPage();
+            }
+            if($this->getCalledAction() !== null && $this->getCalledAction() !== 'default') {
+                $domain .= '/'.$this->getCalledAction();
+            }
+            $canonical->parse('CANONICAL_URL', 'https://www.' .$domain);
+            $tplIndex->parse('CANONICAL', $canonical->retrieveTemplate());
         }
 
         $tplIndex->parse('WRAPPER_CONTENT', $wrapperContent);

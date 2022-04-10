@@ -3,16 +3,15 @@
 <head>
     <title>{{TITLE}}</title>
     <meta name="description" content="{{DESCRIPTION}}"/>
-
     {{ADDITIONAL_META}}
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    {{CANONICAL}}
 
     {{VUETIFY_CSS}}
     <link rel="stylesheet" href="/src/Resources/Cache/{{CSS_INCLUDES}}.css">
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.x{{VUE_DEVELOPMENT_URL}}"></script>
     <script src="https://unpkg.com/vue-observe-visibility/dist/vue-observe-visibility.min.js"></script>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 
     {{GOOGLE_ANALYTICS}}
 </head>
