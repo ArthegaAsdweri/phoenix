@@ -214,6 +214,7 @@ class Controller
         if (!$fileCheck) {
             $this->setPage('oops');
             $fileCheck = $this->checkFile();
+            $this->setStatusCode404();
         }
 
         //everything failed - 404
