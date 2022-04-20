@@ -77,7 +77,7 @@ class Parser
      */
     public function retrieveTemplate(): string
     {
-        $cleanTemplate = preg_replace('/[{]{2}([^this]\s)(.*)[}]{2}/', '', $this->parsed);
+        $cleanTemplate = preg_replace('/[{]{2}(?!(\s)(this))(.*)[^\s][}]{2}/', '', $this->parsed);
         $this->parsed = $this->getOriginal();
         return $cleanTemplate;
     }

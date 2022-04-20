@@ -11,6 +11,8 @@
     {{VUETIFY_CSS}}
     <link rel="stylesheet" href="/src/Resources/Cache/{{CSS_INCLUDES}}.css">
 
+    {{COOKIEBOT}}
+
     <script src="https://cdn.jsdelivr.net/npm/vue@2.x{{VUE_DEVELOPMENT_URL}}"></script>
     <script src="https://unpkg.com/vue-observe-visibility/dist/vue-observe-visibility.min.js"></script>
 
@@ -38,6 +40,7 @@
 
     var vm = new Vue({
         el: '#phoenix',
+        //{{MAIN_MIXINS}}
         components: {
             'ph-debug-console': phDebugConsole
         },

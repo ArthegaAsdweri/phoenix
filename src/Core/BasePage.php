@@ -108,8 +108,8 @@ abstract class BasePage
         $page = $pageArray['page'];
 
         if ($mixin !== null) {
-            $componentPath = 'mixins/' . $componentName . '.vue';
-            $componentPath2 = $project . 'mixins/' . $componentName . '.vue';
+            $componentPath = 'Mixins/' . $componentName . '.vue';
+            $componentPath2 = $project . 'Mixins/' . $componentName . '.vue';
         } else {
             $componentPath = 'Pages/' . $page . '/Components/' . $componentName . '.vue';
             $componentPath2 = $project . 'Pages/' . $page . '/Components/' . $componentName . '.vue';
@@ -160,9 +160,9 @@ abstract class BasePage
      * Diese Methode registriert ein Mixin, das nur für die Haupt-Vue-Instanz geladen wird.
      *
      * @param string $componentName der Name der Komponente
-     * @return VueComponent|null       Die Komponente oder null, falls sie nicht gefunden wurde
+     * @return Component|null       Die Komponente oder null, falls sie nicht gefunden wurde
      */
-    final protected function registerMainMixin(string $componentName): ?VueComponent
+    final protected function registerMainMixin(string $componentName): ?Component
     {
         return $this->registerVueComponent($componentName, true, 'VUE');
     }
@@ -363,9 +363,13 @@ abstract class BasePage
         string $action = 'default',
         bool $global = false
     ): BaseModule {
+        $moduleName = ucfirst(strtolower($moduleName));
         $ucAction = ucfirst($action);
-        $className = 'PhoenixPhp\Modules\\' . strtoupper($moduleName) . '\\' . $ucAction . 'Action';
+        $className = 'PhoenixPhp\Modules\\' . $moduleName . '\\' . $ucAction . 'Action';
 
+        if ($global === false) {
+            $className = PHPHP_PSR_NAMESPACE . '\Modules\\' . $moduleName . '\\' . $ucAction . 'Action';
+        }
         //FIXME - REGISTRIEREN VON CSS UND JS ÜBER MODUL MÖGLICH MACHEN
 
         return new $className();

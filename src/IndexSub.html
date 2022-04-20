@@ -1,33 +1,46 @@
 {[{CANONICAL}]}
-    <link rel="canonical" href="{{CANONICAL_URL}}"/>
+<link rel="canonical" href="{{CANONICAL_URL}}"/>
 {[{/CANONICAL}]}
 
 {[{VUETIFY_CSS}]}
-    <!--
-    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    -->
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+<!--
+<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+-->
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
 {[{/VUETIFY_CSS}]}
 
 {[{VUETIFY_JS}]}
-    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
 {[{/VUETIFY_JS}]}
 
 {[{AXIOS_JS}]}
-    <script src="https://cdn.jsdelivr.net/npm/axios@0.x/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@0.x/dist/axios.min.js"></script>
 {[{/AXIOS_JS}]}
 
 {[{GOOGLE_ANALYTICS}]}
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{GOOGLE_ANALYTICS_ID}}"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
+<script async src="https://www.googletagmanager.com/gtag/js?id={{GOOGLE_ANALYTICS_ID}}"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
 
-        function gtag() {
-            dataLayer.push(arguments);
-        }
+    function gtag() {
+        dataLayer.push(arguments);
+    }
 
-        gtag('js', new Date());
-        gtag('config', '{{GOOGLE_ANALYTICS_ID}}');
-    </script>
+    gtag('js', new Date());
+    gtag('config', '{{GOOGLE_ANALYTICS_ID}}');
+</script>
 {[{/GOOGLE_ANALYTICS}]}
+
+{[{COOKIEBOT}]}
+<script
+    id="Cookiebot" src="https://consent.cookiebot.com/uc.js"
+    data-cbid="{{COOKIEBOT_ID}}"
+    data-blockingmode="auto" type="text/javascript">
+</script>
+<script
+    id="CookieDeclaration"
+    src="https://consent.cookiebot.com/{{COOKIEBOT_ID}}/cd.js"
+    type="text/javascript" async>
+</script>
+{[{/COOKIEBOT}]}

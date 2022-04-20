@@ -119,7 +119,7 @@ abstract class BaseWrapper extends BasePage
         }
 
         if (count($mainMixins) > 0) {
-            $tplIndex->parse('MAIN_MIXINS', ',' . PHP_EOL . 'mixins: [' . implode(PHP_EOL, $mainMixins) . ']');
+            $tplIndex->parse('MAIN_MIXINS', PHP_EOL . 'mixins: [' . implode(PHP_EOL, $mainMixins) . '],');
         }
 
         //render includes
@@ -194,14 +194,20 @@ abstract class BaseWrapper extends BasePage
         $canonical = new Parser(__DIR__ . '/../IndexSub.html', 'CANONICAL');
         if (defined('PHPHP_DOMAIN')) {
             $domain = PHPHP_DOMAIN;
-            if($this->getCalledPage() !== null && $this->getCalledPage() !== 'home') {
-                $domain .= '/'.$this->getCalledPage();
+            if ($this->getCalledPage() !== null && $this->getCalledPage() !== 'home') {
+                $domain .= '/' . $this->getCalledPage();
             }
-            if($this->getCalledAction() !== null && $this->getCalledAction() !== 'default') {
-                $domain .= '/'.$this->getCalledAction();
+            if ($this->getCalledAction() !== null && $this->getCalledAction() !== 'default') {
+                $domain .= '/' . $this->getCalledAction();
             }
-            $canonical->parse('CANONICAL_URL', 'https://www.' .$domain);
+            $canonical->parse('CANONICAL_URL', 'https://www.' . $domain);
             $tplIndex->parse('CANONICAL', $canonical->retrieveTemplate());
+        }
+
+        if (defined('PHPHP_COOKIEBOT_ID')) {
+            $cookieBot = new Parser(__DIR__ . '/../IndexSub.html', 'COOKIEBOT');
+            $cookieBot->parse('COOKIEBOT_ID', PHPHP_COOKIEBOT_ID);
+            $tplIndex->parse('COOKIEBOT', $cookieBot->retrieveTemplate());
         }
 
         $tplIndex->parse('WRAPPER_CONTENT', $wrapperContent);
