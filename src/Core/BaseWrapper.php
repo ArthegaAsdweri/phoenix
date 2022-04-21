@@ -210,6 +210,25 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse('COOKIEBOT', $cookieBot->retrieveTemplate());
         }
 
+        if (defined('PHPHP_META')) {
+            $meta = PHPHP_META;
+            $author = '';
+            $copyright = '';
+            $publisher = '';
+            if (isset($meta['AUTHOR'])) {
+                $author = $meta['AUTHOR'];
+            }
+            if (isset($meta['COPYRIGHT'])) {
+                $copyright = $meta['COPYRIGHT'];
+            }
+            if (isset($meta['PUBLISHER'])) {
+                $publisher = $meta['PUBLISHER'];
+            }
+            $tplIndex->parse('AUTHOR', $author);
+            $tplIndex->parse('COPYRIGHT', $copyright);
+            $tplIndex->parse('PUBLISHER', $publisher);
+        }
+
         $tplIndex->parse('WRAPPER_CONTENT', $wrapperContent);
         $tplIndex->parse('ADDITIONAL_BODY_SCRIPTS', $this->getAdditionalBodyScripts());
 

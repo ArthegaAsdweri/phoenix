@@ -113,7 +113,7 @@ abstract class BaseModule
     {
         $moduleArray = $this->retrieveModuleArray();
         $project = $moduleArray['project'];
-        $module = $moduleArray['module'];
+        $module = ucfirst(strtolower($moduleArray['module']));
         $componentPath = 'Modules/' . $module . '/Components/' . $componentName . '.vue';
         $componentPath2 = $project . 'Modules/' . $module . '/Components/' . $componentName . '.vue';
 
