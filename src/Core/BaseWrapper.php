@@ -135,7 +135,7 @@ abstract class BaseWrapper extends BasePage
         $tplIndex->parse('JS_INLINE', $jsInline);
 
         if (getenv('DEVELOPER')) {
-            $tplIndex->parse('VUE_DEVELOPMENT_URL', '.min');
+            $tplIndex->parse('VUE_DEVELOPMENT_URL', '/dist/vue.min.js');
             $tplIndex->parse('VUE_DEVELOPMENT', 'Vue.config.devtools = true;');
         }
 
