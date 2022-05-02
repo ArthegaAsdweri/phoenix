@@ -180,7 +180,7 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse('ADDITIONAL_META', $this->getAdditionalMeta());
         }
 
-        if (defined('PHPHP_GOOGLE')) {
+        if (defined('PHPHP_GOOGLE') && !defined('DEVELOPER')) {
             $google = PHPHP_GOOGLE;
             if (isset($google['ANALYTICS']) && $google['ANALYTICS'] === true) {
                 if (isset($google['ANALYTICS_ID'])) {
@@ -204,7 +204,7 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse('CANONICAL', $canonical->retrieveTemplate());
         }
 
-        if (defined('PHPHP_COOKIEBOT_ID')) {
+        if (defined('PHPHP_COOKIEBOT_ID') && !defined('DEVELOPER')) {
             $cookieBot = new Parser(__DIR__ . '/../IndexSub.html', 'COOKIEBOT');
             $cookieBot->parse('COOKIEBOT_ID', PHPHP_COOKIEBOT_ID);
             $tplIndex->parse('COOKIEBOT', $cookieBot->retrieveTemplate());
