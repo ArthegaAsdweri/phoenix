@@ -275,6 +275,12 @@ abstract class BasePage
         $cssContent = '';
         foreach ($cssFiles as $cssFile) {
             $cssFileString .= $cssFile;
+            if (!getenv("DEVELOPER")) {
+                $minFile = str_replace('.css', '.min.css', $cssFile);
+                if (stream_resolve_include_path($minFile)) {
+                    $cssFile = $minFile;
+                }
+            }
             $cssContent .= file_get_contents(stream_resolve_include_path($cssFile));
         }
 
@@ -305,11 +311,14 @@ abstract class BasePage
         $jsFileString = '';
         $jsContent = '';
         foreach ($jsFiles as $jsFile) {
-            //Lokal immer die Entwickler-JS-Dateien laden
-            if (getenv('DEVELOPER')) {
-                $jsFile = str_replace('/js/', '/devjs/', $jsFile);
-            }
             $jsFileString .= $jsFile;
+            //Lokal immer die Entwickler-JS-Dateien laden
+            if (!getenv("DEVELOPER")) {
+                $minFile = str_replace('.js', '.min.js', $jsFile);
+                if (stream_resolve_include_path($minFile)) {
+                    $jsFile = $minFile;
+                }
+            }
             $jsContent .= file_get_contents(stream_resolve_include_path($jsFile));
         }
         $md5String = md5($jsFileString);
