@@ -147,7 +147,7 @@ class Controller
      */
     private function retrieveDir(): string
     {
-        $page = ucfirst($this->getPage());
+        $page = ucfirst(StringConversion::toCamelCase($this->getPage()));
         $action = ucfirst($this->getAction());
 
         $dir = 'Pages';

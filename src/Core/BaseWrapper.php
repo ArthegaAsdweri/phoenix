@@ -135,8 +135,8 @@ abstract class BaseWrapper extends BasePage
         $tplIndex->parse('JS_INLINE', $jsInline);
 
         if (getenv('DEVELOPER')) {
-            $tplIndex->parse('VUE_DEVELOPMENT_URL', '/dist/vue.min.js');
-            $tplIndex->parse('VUE_DEVELOPMENT', 'Vue.config.devtools = true;');
+            $tplIndex->parse('VUE_DEVELOPMENT_URL', '/dist/vue.js');
+            $tplIndex->parse('VUE_DEVELOPMENT', PHP_EOL.'Vue.config.devtools = true;');
         }
 
         if (defined('PHPHP_VUETIFY') && PHPHP_VUETIFY === true) {
@@ -204,7 +204,7 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse('CANONICAL', $canonical->retrieveTemplate());
         }
 
-        if (defined('PHPHP_COOKIEBOT_ID') && !defined('DEVELOPER')) {
+        if (defined('PHPHP_COOKIEBOT_ID') && !getenv('DEVELOPER')) {
             $cookieBot = new Parser(__DIR__ . '/../IndexSub.html', 'COOKIEBOT');
             $cookieBot->parse('COOKIEBOT_ID', PHPHP_COOKIEBOT_ID);
             $tplIndex->parse('COOKIEBOT', $cookieBot->retrieveTemplate());
