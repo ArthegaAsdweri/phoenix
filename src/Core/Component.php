@@ -36,8 +36,8 @@ class Component extends Parser
 
         $camelName = StringConversion::toCamelCase($this->getName());
         if ($this->isChild()) {
-            $script = preg_replace('/^[\s\S]*export default {\s*name: "(.*)",/', 'var ' . $camelName . ' = {', $script);
-            $script = preg_replace('/export default {\s*name: "(.*)",/', 'var ' . $camelName . ' = {', $script);
+            $script = preg_replace('/^[\s\S]*export default {/', 'var ' . $camelName . ' = {', $script);
+            $script = preg_replace('/export default {/', 'var ' . $camelName . ' = {', $script);
             $bracket = '';
         } else {
             $snakeName = str_replace('_', '-', StringConversion::toSnakeCase($this->getName()));

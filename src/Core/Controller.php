@@ -142,6 +142,28 @@ class Controller
     }
 
     /**
+     * determines an optional alias for the action
+     * @param string $action name of the action
+     * @return string $aliasAction the real page if the called page is an alias or the initial page if not
+     */
+    private function retrieveAliasForAction(string $action): string
+    {
+        $aliases = $this->getAliases();
+        if ($aliases !== null) {
+            foreach ($this->getAliases() as $aliasPage => $aliasOptions) {
+                if (isset($aliasOptions['actions'])) {
+                    foreach ($aliasOptions['actions'] as $aliasAction => $options) {
+                        if (in_array($action, $options)) {
+                            return $aliasAction;
+                        }
+                    }
+                }
+            }
+        }
+        return $action;
+    }
+
+    /**
      * determines the directory path
      * @return string generated path with page and its action
      */
@@ -188,6 +210,12 @@ class Controller
         }
 
         $originalAction = $this->getAction();
+
+        //was the action an alias?
+        $aliasAction = $this->retrieveAliasForAction($this->getAction());
+        if($aliasAction !== $this->getAction()) {
+            $this->setAction($aliasAction);
+        }
 
         //"real" page name request
         $fileCheck = $this->checkFile();
