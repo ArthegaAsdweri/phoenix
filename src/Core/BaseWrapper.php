@@ -17,6 +17,7 @@ abstract class BaseWrapper extends BasePage
 
 
     //---- ABSTRACT METHODS
+    //---- ABSTRACT METHODS
 
     abstract function parseContent(): string;
 
@@ -124,21 +125,28 @@ abstract class BaseWrapper extends BasePage
 
         //render includes
         $cssString = $this->renderCss();
-        $jsString = $this->renderJs();
+
         $jsExString = $this->renderExternalJs();
         $jsInline = $this->getInlineJs();
 
         $tplIndex->parse('CSS_INCLUDES', $cssString);
-        $tplIndex->parse('JS_INCLUDES', $jsString);
         $tplIndex->parse('VUE_COMPONENTS', PHP_EOL . $vueString);
         $tplIndex->parse('EXTERNAL_JS', $jsExString);
         $tplIndex->parse('JS_INLINE', $jsInline);
 
-        if (getenv('DEVELOPER')) {
-            $tplIndex->parse('VUE_DEVELOPMENT_URL', '/dist/vue.js');
-            $tplIndex->parse('VUE_DEVELOPMENT', PHP_EOL.'Vue.config.devtools = true;');
+        //render JS
+        if (count($this->getJsFiles()) > 0) {
+            $jsString = $this->renderJs();
+            $tplIndex->parse('INTERNAL_JS', '<script src="/cache/' . $jsString . '.js"></script>');
         }
 
+        //render vue dev mode
+        if (getenv('DEVELOPER')) {
+            $tplIndex->parse('VUE_DEVELOPMENT_URL', '/dist/vue.js');
+            $tplIndex->parse('VUE_DEVELOPMENT', PHP_EOL . 'Vue.config.devtools = true;');
+        }
+
+        //render vuetify
         if (defined('PHPHP_VUETIFY') && PHPHP_VUETIFY === true) {
             $vuetifyJs = new Parser(__DIR__ . '/../IndexSub.html', 'VUETIFY_JS');
             $vuetifyCss = new Parser(__DIR__ . '/../IndexSub.html', 'VUETIFY_CSS');
@@ -180,7 +188,7 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse('ADDITIONAL_META', $this->getAdditionalMeta());
         }
 
-        if (defined('PHPHP_GOOGLE') && !defined('DEVELOPER')) {
+        if (defined('PHPHP_GOOGLE') && !getenv('DEVELOPER')) {
             $google = PHPHP_GOOGLE;
             if (isset($google['ANALYTICS']) && $google['ANALYTICS'] === true) {
                 if (isset($google['ANALYTICS_ID'])) {
