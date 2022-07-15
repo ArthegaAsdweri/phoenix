@@ -42,9 +42,9 @@ class Session
      * stores values inside the php session
      * @param string $namespace session namespace
      * @param string $key session key
-     * @param string|int|bool $value session value
+     * @param object|string|int|bool $value session value
      */
-    public function put(string $namespace, string $key, string|int|bool $value): void
+    public function put(string $namespace, string $key, object|string|int|bool $value): void
     {
         $_SESSION[$namespace][$key] = $value;
     }
@@ -53,14 +53,26 @@ class Session
      * reads values from the php session
      * @param string $namespace session namespace
      * @param string $key session key
-     * @return string|int|bool|null session value
+     * @return object|string|int|bool|null session value
      */
-    public function retrieve(string $namespace, string $key): string|int|bool|null
+    public function retrieve(string $namespace, string $key): object|string|int|bool|null
     {
         if (isset($_SESSION[$namespace][$key])) {
             return $_SESSION[$namespace][$key];
         }
         return null;
+    }
+
+    /**
+     * deletes a value from the php session
+     * @param string $namespace session namespace
+     * @param string $key session key
+     */
+    public function delete(string $namespace, string $key): void
+    {
+        if (isset($_SESSION[$namespace][$key])) {
+            unset($_SESSION[$namespace][$key]);
+        }
     }
 
     /**

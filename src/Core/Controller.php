@@ -2,6 +2,7 @@
 
 namespace PhoenixPhp\Core;
 
+
 use PhoenixPhp\PageWrapper\PageWrapper;
 use PhoenixPhp\Utils\StringConversion;
 use Symfony\Component\Yaml\Yaml;
@@ -260,14 +261,18 @@ class Controller
         //framework class
         if (stream_resolve_include_path($path)) {
             try {
-                $class = new $globalClassName();
-                $class->setCalledPage($this->getCalledPage());
-                $class->setCalledAction($originalAction);
-            } catch (\Error $e) {
+                /** @var BasePage $class */
                 $className = PHPHP_PSR_NAMESPACE . $classString;
                 $class = new $className();
                 $class->setCalledPage($this->getCalledPage());
                 $class->setCalledAction($originalAction);
+                $class->setCalledArgument($this->getArgument());
+            } catch (\Error $e) {
+                /** @var BasePage $class */
+                $class = new $globalClassName();
+                $class->setCalledPage($this->getCalledPage());
+                $class->setCalledAction($originalAction);
+                $class->setCalledArgument($this->getArgument());
             }
         }
 

@@ -13,6 +13,7 @@ abstract class BasePage
     protected string $page;
     protected string $calledPage;
     protected string $calledAction;
+    protected ?string $calledArgument = null;
     protected string $templatePath;
     protected ?string $subTemplatePath = null;
     protected array $cssFiles = [];
@@ -21,6 +22,7 @@ abstract class BasePage
     protected string $inlineJs = '';
     protected array $vueComponents = [];
     protected bool $debugMode = false;
+    protected bool $noTemplate = false;
 
     protected string $title = 'Page Title';
     protected string $description = 'Page Description';
@@ -74,20 +76,22 @@ abstract class BasePage
     {
         $pageData = $this->retrievePageArray();
 
-        //Haupt-Template
-        $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . '.html';
-        if (!stream_resolve_include_path($templatePath)) {
-            throw new Exception('Die Datei ' . $templatePath . ' existiert nicht.');
-        }
-        $this->setTemplatePath($templatePath);
+        if(!$this->noTemplate) {
+            //Haupt-Template
+            $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . '.html';
+            if (!stream_resolve_include_path($templatePath)) {
+                throw new Exception('Die Datei ' . $templatePath . ' existiert nicht.');
+            }
+            $this->setTemplatePath($templatePath);
 
-        //SubTemplate
-        $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . 'Sub.html';
-        if (!stream_resolve_include_path($templatePath)) {
+            //SubTemplate
             $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . 'Sub.html';
-            $templatePath = stream_resolve_include_path($templatePath);
+            if (!stream_resolve_include_path($templatePath)) {
+                $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . 'Sub.html';
+                $templatePath = stream_resolve_include_path($templatePath);
+            }
+            $this->setSubTemplatePath($templatePath);
         }
-        $this->setSubTemplatePath($templatePath);
     }
 
     /**
@@ -475,6 +479,22 @@ abstract class BasePage
     public function setCalledAction(string $calledAction): void
     {
         $this->calledAction = $calledAction;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getCalledArgument(): ?string
+    {
+        return $this->calledArgument;
+    }
+
+    /**
+     * @param string|null $calledArgument
+     */
+    public function setCalledArgument(?string $calledArgument): void
+    {
+        $this->calledArgument = $calledArgument;
     }
 
     /**
