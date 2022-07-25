@@ -76,7 +76,7 @@ abstract class BasePage
     {
         $pageData = $this->retrievePageArray();
 
-        if(!$this->noTemplate) {
+        if (!$this->noTemplate) {
             //Haupt-Template
             $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . '.html';
             if (!stream_resolve_include_path($templatePath)) {
@@ -113,7 +113,7 @@ abstract class BasePage
 
         if ($mixin !== null) {
             $componentPath = 'Mixins/' . $componentName . '.vue';
-            $componentPath2 = $project . 'Mixins/' . $componentName . '.vue';
+            $componentPath2 = __DIR__ . '/../Mixins/' . $componentName . '.vue';
         } else {
             $componentPath = 'Pages/' . $page . '/Components/' . $componentName . '.vue';
             $componentPath2 = $project . 'Pages/' . $page . '/Components/' . $componentName . '.vue';
@@ -674,17 +674,17 @@ abstract class BasePage
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getAdditionalBodyScripts(): string
+    public function getAdditionalBodyScripts(): ?string
     {
         return $this->additionalBodyScripts;
     }
 
     /**
-     * @param string $additionalBodyScripts
+     * @param string|null $additionalBodyScripts
      */
-    public function setAdditionalBodyScripts(string $additionalBodyScripts): void
+    public function setAdditionalBodyScripts(?string $additionalBodyScripts): void
     {
         $this->additionalBodyScripts = $additionalBodyScripts;
     }

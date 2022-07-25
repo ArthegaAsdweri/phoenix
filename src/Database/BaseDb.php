@@ -183,7 +183,7 @@ class BaseDb
      * @return object|array|null $result      Das Ergebnis des Queries oder null, wenn kein Treffer
      * @throws Exception
      */
-    private function findUnique() : object | array | null
+    private function findUnique(): object|array|null
     {
         if ($this->query->getJoins() !== null) {
             throw new Exception('findUnique kann nicht mit Join verwendet werden. (Datensatz uneindeutig)');
@@ -192,14 +192,10 @@ class BaseDb
         //Zwischewnspeichern der Tabelle - wird nach Query resettet
         $tableName = $this->query->getFrom();
 
-        $result = $this->callQuery();
+        $result = $this->callQuery($this->query);
         if ($result !== null) {
-            if ($this->getIgnoreMock() === false) {
-                $returnObject = $result[0];
-            } else {
-                $resultArray = $result[0];
-                $returnObject = $this->putProperties($resultArray, $tableName);
-            }
+            $resultArray = $result[0];
+            $returnObject = $this->putProperties($resultArray, $tableName);
             return $returnObject;
         }
         return null;
@@ -316,11 +312,6 @@ class BaseDb
             }
 
             if (count($result) > 0) {
-
-                if(count($result) === 1) {
-                    return $result[0];
-                }
-
                 $resultArray = [];
                 foreach ($result as $resultObject) {
                     $resultArray[] = $resultObject;
@@ -638,23 +629,17 @@ class BaseDb
      */
     private function generateTargetClassName(string $tableName): string
     {
-        $className = get_called_class();
-        $stringParts = explode('\\', $className);
-        $length = count($stringParts);
-        $classTable = ucfirst(StringConversion::toCamelCase($tableName));
-
-        $newClassName = '\\FGN\LIB\\Classes\\DB\\SHOP\\' . $classTable;
-
-        return $newClassName;
+        $className = get_called_class().'\\'.ucfirst(StringConversion::toCamelCase($tableName));
+        return $className;
     }
 
     /**
      * Hilft beim Debugging
      */
-    public function printQuery(): void
+    public function printQuery($query): void
     {
-        $queryString = $this->query->createQueryString();
-        $execArray = $this->createExecutionParameters();
+        $queryString = $query->createQueryString();
+        $execArray = $query->createExecutionParameters();
         foreach ($execArray as $parameter) {
             $value = $parameter['value'];
             if ($parameter['type'] === 2) {

@@ -91,14 +91,7 @@ class Controller
             $action = 'default';
         }
 
-        if ($page === 'ajax' || $page === 'ajax_global') {
-            if ($page === 'ajax_global') {
-                $this->setGlobalAjaxCall(true);
-            }
-
-            $page = $action;
-            $action = $argument;
-            $argument = null;
+        if (isset($_SERVER['HTTP_AJAX']) && $_SERVER['HTTP_AJAX'] === 'true') {
             $this->setAjaxCall(true);
         }
 
@@ -171,13 +164,12 @@ class Controller
     private function retrieveDir(): string
     {
         $page = ucfirst(StringConversion::toCamelCase($this->getPage()));
-        $action = ucfirst($this->getAction());
+        $action = ucfirst(StringConversion::toCamelCase($this->getAction()));
 
         $dir = 'Pages';
         $suffix = 'Action';
         if ($this->isAjaxCall() === true) {
-            $dir = 'ajax';
-            $suffix = '';
+            $suffix = 'Ajax';
         }
 
         $pageDir = $dir . '/' . $page . '/';
@@ -214,7 +206,7 @@ class Controller
 
         //was the action an alias?
         $aliasAction = $this->retrieveAliasForAction($this->getAction());
-        if($aliasAction !== $this->getAction()) {
+        if ($aliasAction !== $this->getAction()) {
             $this->setAction($aliasAction);
         }
 
@@ -298,12 +290,8 @@ class Controller
 
             $action = StringConversion::toCamelCase($this->getAction());
 
-            if (stream_resolve_include_path($path) && !$this->getGlobalAjaxCall()) {
-                $className = NAMESPACE_STRING . '\Ajax\\' . $this->getPage() . '\\' . ucfirst($action);
-            } else {
-                if (stream_resolve_include_path($globalPath)) {
-                    $className = 'ArthegaAsdweri\Phoenix\Ajax\\' . $this->getPage() . '\\' . ucfirst($action);
-                }
+            if (stream_resolve_include_path($path)) {
+                $className = PHPHP_PSR_NAMESPACE . '\PAGES\\' . ucfirst($this->getPage()) . '\\' . ucfirst($action.'Ajax');
             }
 
             /** @var BasePage $className */

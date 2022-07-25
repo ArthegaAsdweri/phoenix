@@ -170,16 +170,18 @@ class Query
         $selectFields = [];
         foreach ($originalFields as $selectField) {
             $aggregateFound = false;
-            foreach($aggregateArray as $aggregate) {
-                if(stristr($selectField, $aggregate)) {
+            foreach ($aggregateArray as $aggregate) {
+                if (stristr($selectField, $aggregate.'(')) {
                     $aggregateFound = true;
                     $tmpSelectField = str_replace($aggregateArray, '', $selectField);
-                    $tmpSelectField = str_replace(['(',')'], '', $tmpSelectField);
-                    $selectFields[] = $aggregate.'(`' . $tmpSelectField . '`) AS `' . $this->createSelectAlias($tmpSelectField) . '`';
+                    $tmpSelectField = str_replace(['(', ')'], '', $tmpSelectField);
+                    $selectFields[] = $aggregate . '(`' . $tmpSelectField . '`) AS `' . $this->createSelectAlias(
+                            $tmpSelectField
+                        ) . '`';
                 }
             }
 
-            if(!$aggregateFound) {
+            if (!$aggregateFound) {
                 $selectFields[] = $selectField;
             }
         }
@@ -281,15 +283,14 @@ class Query
      *
      * @return string $whereString    Der fertige WHERE-String für das Query
      */
-    public
-    function createWhereString(): string
+    public function createWhereString(): string
     {
         $keys = $this->getWhere();
         $whereString = '';
         if ($keys !== null) {
             $whereArray = [];
             foreach ($keys as $key => $value) {
-                if (is_a($value, '\ArthegaAsdweri\Phoenix\Classes\Main\BaseDbWhere')) {
+                if (is_a($value, '\PhoenixPhp\Database\Where')) {
                     $where = $value->createWhere();
                     $whereArray[] = $where;
                 } else {
@@ -621,12 +622,10 @@ class Query
      *
      * @param array $keys Key-Value Paare [feld => wert, feld2 => ['>',  wert2]], nach denen gefiltert wird
      */
-    public
-    function where(
-        array $keys
-    ): void {
+    public function where(array $keys): void
+    {
         foreach ($keys as $key => $value) {
-            if (is_a($value, '\ArthegaAsdweri\Phoenix\Classes\Main\BaseDbWhere')) {
+            if (is_a($value, '\PhoenixPhp\DataBase\Where')) {
                 $whereArray = $this->getWhere();
                 $whereArray[] = $value;
                 $this->setWhere($whereArray);
@@ -636,11 +635,8 @@ class Query
         }
     }
 
-    public
-    function addWhere(
-        string $key,
-        $value
-    ): Where {
+    public function addWhere(string $key, $value): Where
+    {
         $clauses = $this->getWhere();
 
         $index = $this->getWhereCounter();

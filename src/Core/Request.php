@@ -87,9 +87,9 @@ class Request
      *
      * @param string $parameter key (name) of the parameter
      *
-     * @return bool|string|int|null $parameter value of the parameter or null if not it does not exist
+     * @return bool|string|int|float|null $parameter value of the parameter or null if not it does not exist
      */
-    public function retrieveParameter(string $parameter): bool|string|int|null
+    public function retrieveParameter(string $parameter): bool|string|int|float|null
     {
         if (isset($this->request[$parameter]) && $this->request[$parameter] !== '') {
             return $this->request[$parameter];
