@@ -28,12 +28,8 @@ abstract class BaseAjax
 
         if ($parameters !== null) {
             foreach ($parameters as $parameter => $value) {
-                if ($parameter === 'phoenix') {
-                    continue;
-                }
                 $camelParam = StringConversion::toCamelCase($parameter);
                 $methodName = 'validate' . ucfirst($camelParam);
-
                 if (getenv('DEVELOPER')) {
                     if (!method_exists($this, $methodName)) {
                         $logger = new Logger();

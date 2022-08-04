@@ -291,7 +291,7 @@ class Controller
             $action = StringConversion::toCamelCase($this->getAction());
 
             if (stream_resolve_include_path($path)) {
-                $className = PHPHP_PSR_NAMESPACE . '\PAGES\\' . ucfirst($this->getPage()) . '\\' . ucfirst($action.'Ajax');
+                $className = PHPHP_PSR_NAMESPACE . '\Pages\\' . ucfirst($this->getPage()) . '\\' . ucfirst($action.'Ajax');
             }
 
             /** @var BasePage $className */
