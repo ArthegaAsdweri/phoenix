@@ -239,8 +239,12 @@ abstract class BaseWrapper extends BasePage
 
         $tplIndex->parse('WRAPPER_CONTENT', $wrapperContent);
 
-        if($this->getAdditionalBodyScripts() !== null) {
+        if ($this->getAdditionalBodyScripts() !== null) {
             $tplIndex->parse('ADDITIONAL_BODY_SCRIPTS', $this->getAdditionalBodyScripts());
+        }
+
+        if (defined('PHPHP_VERSION')) {
+            $tplIndex->parse('VERSION', '?' . PHPHP_VERSION);
         }
 
         return $tplIndex->retrieveTemplate();
