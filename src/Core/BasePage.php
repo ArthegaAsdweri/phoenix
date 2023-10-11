@@ -2,8 +2,12 @@
 
 namespace PhoenixPhp\Core;
 
+use PhoenixPhp\Utils\JsonEncoder;
+
 /**
- * handles the contents of a page
+ * base class for every page
+ *
+ * A page is a route in your project that has its own URI. Like /newsletter, /imprint
  */
 abstract class BasePage
 {
@@ -16,10 +20,6 @@ abstract class BasePage
     protected ?string $calledArgument = null;
     protected string $templatePath;
     protected ?string $subTemplatePath = null;
-    protected array $cssFiles = [];
-    protected array $jsFiles = [];
-    protected array $externalJsFiles = [];
-    protected string $inlineJs = '';
     protected array $vueComponents = [];
     protected bool $debugMode = false;
     protected bool $noTemplate = false;
@@ -33,14 +33,14 @@ abstract class BasePage
     //---- ABSTRACT METHODS
 
     /**
-     * Diese Methode rendert den Inhalt der Seite
+     * This method renders the contents of the page.
      *
-     * @return string    Der Inhalt der Seite
+     * @return string rendered page
      */
     abstract public function parseContent(): string;
 
     /**
-     * Diese Methode rendert den Inhalt der Vue-Komponenten
+     * This method registers vue components that might be part of the page.
      */
     abstract public function parseVueComponents(): void;
 
@@ -48,9 +48,9 @@ abstract class BasePage
     //---- GENERAL METHODS
 
     /**
-     * Diese Methode generiert ein Array mit den Daten zum aktuellen Pfad der Seite
+     * This method generates the path to the actual page.
      *
-     * @return array    Array mit den Pfad-Daten
+     * @return array path data
      */
     public function retrievePageArray(): array
     {
@@ -70,24 +70,23 @@ abstract class BasePage
     }
 
     /**
-     * Diese Methode generiert den Pfad zum Template und speichert ihn abrufbar im Objekt
+     * This method creates the path to the template and saves it inside the object.
      */
     public function generateTemplate(): void
     {
         $pageData = $this->retrievePageArray();
 
         if (!$this->noTemplate) {
-            //Haupt-Template
+            //main template
             $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . '.html';
             if (!stream_resolve_include_path($templatePath)) {
-                throw new Exception('Die Datei ' . $templatePath . ' existiert nicht.');
+                throw new Exception('The file ' . $templatePath . ' does not exist.');
             }
             $this->setTemplatePath($templatePath);
 
-            //SubTemplate
+            //sub template
             $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . 'Sub.html';
             if (!stream_resolve_include_path($templatePath)) {
-                $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . 'Sub.html';
                 $templatePath = stream_resolve_include_path($templatePath);
             }
             $this->setSubTemplatePath($templatePath);
@@ -95,12 +94,13 @@ abstract class BasePage
     }
 
     /**
-     * Diese Methode registriert eine Vue-Komponente
+     * This method registers a vue component.
      *
-     * @param string $componentName Der Name der Komponente
-     * @param bool $childComponent true: es handelt sich um eine Kindkomponente, die nicht global regisrtiert wird
-     * @param null|string $mixin LOCAL = lokales Mixin, GLOBAL = globales Mixin (für alle Components), VUE = nur für die Haupt-Instanz     *
-     * @return Component|null       Die Komponente oder null, falls sie nicht gefunden wurde
+     * @param string $componentName
+     * @param bool $childComponent true if component is a child component which is not registered globally
+     * @param null|string $mixin LOCAL = local Mixin, GLOBAL = global Mixin (for all components), VUE = just for the main instance
+     * @return Component|null vue component or null if not found
+     * @throws Exception
      */
     final protected function registerVueComponent(
         string $componentName,
@@ -143,16 +143,17 @@ abstract class BasePage
         }
 
         $logger = new Logger();
-        $logger->warning('Die Vue Komponente "' . $componentPath . '" wurde nicht gefunden.');
+        $logger->warning('The vue component "' . $componentPath . '" was not found.');
         return null;
     }
 
     /**
-     * registers a vue mixin
+     * This method registers a vue mixin.
      *
-     * @param string $componentName name of the component
-     * @param bool $global true: mixin will be accessable for all components false: mixin must be included manually
+     * @param string $componentName
+     * @param bool $global true: mixin will be accessible for all components, false: mixin must be included manually
      * @return Component|null component or null if not valid
+     * @throws Exception
      */
     final protected function registerVueMixin(string $componentName, bool $global = false): ?Component
     {
@@ -161,198 +162,101 @@ abstract class BasePage
     }
 
     /**
-     * Diese Methode registriert ein Mixin, das nur für die Haupt-Vue-Instanz geladen wird.
+     * This method registers a mixin which is only used for the main instance.
      *
-     * @param string $componentName der Name der Komponente
-     * @return Component|null       Die Komponente oder null, falls sie nicht gefunden wurde
+     * @param string $componentName
+     * @return Component|null component or null if not valid
+     * @throws Exception
      */
     final protected function registerMainMixin(string $componentName): ?Component
     {
         return $this->registerVueComponent($componentName, true, 'VUE');
     }
 
-
     /**
-     * registers a css file
+     * This method registers a CSS file.
+     *
      * @param string $path path to the file
+     * @throws Exception
      */
     final protected function registerCss(string $path): void
     {
-        $cssFiles = $this->getCssFiles();
-
-        //disable duplicate includes
-        foreach ($cssFiles as $value) {
-            if ($value === $path) {
-                return;
-            }
-        }
-
-        $path = 'Resources/Css/' . $path;
-        if (!stream_resolve_include_path($path)) {
-            throw new Exception('Die Datei ' . $path . ' existiert nicht.');
-        }
-
-        $cssFiles[] = $path;
-        $this->setCssFiles($cssFiles);
+        $assets = AssetHandler::getInstance();
+        $assets->registerCss($path);
     }
 
     /**
-     * Diese Funktion registriert eine JS-Datei, die geladen werden soll
+     * This method registers a JS file.
      *
-     * @param string $path Pfad zur JS-Datei
+     * @param string $path path to the file
+     * @throws Exception
      */
     final protected function registerJs(string $path): void
     {
-        $jsFiles = $this->getJsFiles();
-
-        //Wurde die Datei bereits registriert?
-        foreach ($jsFiles as $value) {
-            if ($value === $path) {
-                return;
-            }
-        }
-
-        if (!stream_resolve_include_path($path)) {
-            throw new Exception('Die Datei ' . $path . ' existiert nicht.');
-        }
-
-        $jsFiles[] = $path;
-        $this->setJsFiles($jsFiles);
+        $assets = AssetHandler::getInstance();
+        $assets->registerJs($path);
     }
 
     /**
-     * Diese Funktion registriert eine externe JS-Datei, die geladen werden soll
+     * This method registers an external JS file.
      *
-     * @param string $path Pfad zur JS-Datei
+     * @param string $path path to the file
      */
     final protected function registerExternalJs(string $path): void
     {
-        $jsFiles = $this->getExternalJsFiles();
-
-        //Wurde die Datei bereits registriert?
-        foreach ($jsFiles as $value) {
-            if ($value === $path) {
-                return;
-            }
-        }
-
-        $jsFiles[] = $path;
-        $this->setExternalJsFiles($jsFiles);
+        $assets = AssetHandler::getInstance();
+        $assets->registerExternalJs($path);
     }
 
     /**
-     * Diese Funktion registriert Inline-Code, der ausgeführt werden soll
+     * This method registers inline JS code.
      *
-     * @param string $code Der JS Code-Abschnitt
+     * @param string $code the code that needs to run
      */
     final protected function registerInlineJs(string $code): void
     {
-        $jsString = $this->getInlineJs();
-        $jsString .= $code;
-        $this->setInlineJs($jsString);
+        $assets = AssetHandler::getInstance();
+        $assets->registerInlineJs($code);
     }
 
     /**
-     * determines the project path
-     * @return string
-     */
-    private function retrieveDirectoryPath()
-    {
-        $includedFiles = get_included_files();
-        $firstFile = $includedFiles[0];
-        $partArray = explode('/', $firstFile);
-        $length = count($partArray);
-        unset($partArray[$length - 1]);
-        return implode('/', $partArray);
-    }
-
-    /**
-     * Diese Methode rendert die CSS-Dateien in eine einzelne Datei und gibt ihren Namen zurück, damit sie als Pfad
-     * geparst werden kann.
+     * This method renders all the CSS files into one single file and returns its name for being used in the path.
      *
-     * @return string    Der Name der CSS-Datei
+     * @return string name of the CSS file
      */
     final protected function renderCss(): string
     {
-        $cssFiles = $this->getCssFiles();
-        $cssFileString = '';
-        $cssContent = '';
-        foreach ($cssFiles as $cssFile) {
-            $cssFileString .= $cssFile;
-            if (!getenv("DEVELOPER")) {
-                $minFile = str_replace('.css', '.min.css', $cssFile);
-                if (stream_resolve_include_path($minFile)) {
-                    $cssFile = $minFile;
-                }
-            }
-            $cssContent .= file_get_contents(stream_resolve_include_path($cssFile));
-        }
-
-        $components = $this->getVueComponents();
-        foreach ($components as $component) {
-            $component->renderComponent();
-            $cssContent .= $component->getVStyle();
-        }
-
-        $md5String = md5($cssFileString);
-
-        $projectPath = $this->retrieveDirectoryPath();
-        $fp = fopen($projectPath . '/src/Resources/Cache/' . $md5String . '.css', 'w');
-        fwrite($fp, $cssContent);
-        fclose($fp);
-        return $md5String;
+        $assets = AssetHandler::getInstance();
+        return $assets->renderCss($this->getVueComponents());
     }
 
     /**
-     * Diese Methode rendert die JS-Dateien in eine einzelne Datei und gibt ihren Namen zurück, damit sie als Pfad
-     * geparst werden kann.
+     * This method renders all the JS files into one single file and returns its name for being used in the path.
      *
-     * @return string    Der Name der JS-Datei
+     * @return string name of the JS file
      */
     final protected function renderJs(): string
     {
-        $jsFiles = $this->getJsFiles();
-        $jsFileString = '';
-        $jsContent = '';
-        foreach ($jsFiles as $jsFile) {
-            $jsFileString .= $jsFile;
-            //Lokal immer die Entwickler-JS-Dateien laden
-            if (!getenv("DEVELOPER")) {
-                $minFile = str_replace('.js', '.min.js', $jsFile);
-                if (stream_resolve_include_path($minFile)) {
-                    $jsFile = $minFile;
-                }
-            }
-            $jsContent .= file_get_contents(stream_resolve_include_path($jsFile));
-        }
-        $md5String = md5($jsFileString);
-
-        #$fp = fopen('/srv/www/media/cache/'.$md5String.'.js', 'w');
-        #fwrite($fp, $jsContent);
-        #fclose($fp);
-
-        return $md5String;
+        $assets = AssetHandler::getInstance();
+        return $assets->renderJs();
     }
 
     /**
-     * Diese Methode rendert die script-Tags für die externen Java-Script Dateien
+     * This method renders the script tags for the external JS files
      *
-     * @return string    die JS-Dateien als <script>tags
+     * @return string the JS files as <script>-tags
      */
     final protected function renderExternalJs(): string
     {
-        $jsFiles = $this->getExternalJsFiles();
-        $jsFileString = '';
-        foreach ($jsFiles as $jsFile) {
-            $jsFileString .= '<script src="' . $jsFile . '"></script>';
-        }
-        return $jsFileString;
+        $assets = AssetHandler::getInstance();
+        return $assets->renderExternalJs();
     }
 
     /**
-     * Diese Methode gibt den Inhalt der Aktion zurück.
+     * This method returns the contents of the page and its corresponding action.
      *
-     * @return string    Der Inhalt der Seite
+     * @return string rendered contents of the page
+     * @throws Exception
      */
     public function render(): string
     {
@@ -363,13 +267,12 @@ abstract class BasePage
     }
 
     /**
-     * Diese Methode ruft ein Modul der Seite auf.
+     * This method chains a module to the page.
      *
-     * @param string $moduleName Der Name des Moduls, das aufgerufen wird
-     * @param string $action Die Aktion innerhalb des Moduls, die aufgerufen wird
-     * @param bool $global true, wenn das Modul ein globales Modul ist, das geladen werden soll
-     *
-     * @return BaseModule           Das Modul, das aufgerufen wird
+     * @param string $moduleName
+     * @param string $action action that will be called inside the module
+     * @param bool $global true: global module, false: local module inside the project
+     * @return BaseModule called module
      */
     final protected function callModule(
         string $moduleName,
@@ -383,13 +286,13 @@ abstract class BasePage
         if ($global === false) {
             $className = PHPHP_PSR_NAMESPACE . '\Modules\\' . $moduleName . '\\' . $ucAction . 'Action';
         }
-        //FIXME - REGISTRIEREN VON CSS UND JS ÜBER MODUL MÖGLICH MACHEN
+        //FIXME - registering CSS in modules via asset handler
 
         return new $className();
     }
 
     /**
-     * Wrapper Funktion für callModule
+     * wrapper method for global modules
      */
     final protected function callGlobalModule(string $moduleName, string $action = "default"): BaseModule
     {
@@ -397,12 +300,11 @@ abstract class BasePage
     }
 
     /**
-     * Diese Methode rendert das Modul - speichert als Zwischenschritt alle Vue-Components und CSS Dateien in die Seite,
-     * damit diese vom Controller gerendert werden können
+     * This method renders the module and saves all properties needed for the page - like components and assets, so they
+     * can be rendered by the controller.
      *
-     * @param BaseModule $module Das Modul, das gerendert werden soll
-     *
-     * @return string               Der Inhalt des Moduls
+     * @param BaseModule $module the module instance that needs to be rendered
+     * @return string the rendered module content
      */
     final protected function renderModule(BaseModule $module): string
     {
@@ -419,15 +321,14 @@ abstract class BasePage
     }
 
     /**
-     * Diese Methode formatiert ein Array in nutzbares JSON-Format für HTML Tags (z.B. als Vue Prop)
+     * This method converts a string into a usable encoded format for HTML tags. For example to pass data to vue components.
      *
-     * @param array $dataArray Das Array, das als JSON benötigt wird
-     *
-     * @return string             Der Json-String
+     * @param array $dataArray
+     * @return string
      */
-    final protected function returnJsonForHtml(array $dataArray)
+    final protected function returnJsonForHtml(array $dataArray): string
     {
-        return htmlentities(json_encode($dataArray, JSON_HEX_QUOT), ENT_QUOTES);
+        return JsonEncoder::encodeForHtml($dataArray);
     }
 
 
@@ -527,70 +428,6 @@ abstract class BasePage
     public function setSubTemplatePath(?string $subTemplatePath): void
     {
         $this->subTemplatePath = $subTemplatePath;
-    }
-
-    /**
-     * @return array
-     */
-    public function getCssFiles(): array
-    {
-        return $this->cssFiles;
-    }
-
-    /**
-     * @param array $cssFiles
-     */
-    public function setCssFiles(array $cssFiles): void
-    {
-        $this->cssFiles = $cssFiles;
-    }
-
-    /**
-     * @return array
-     */
-    public function getJsFiles(): array
-    {
-        return $this->jsFiles;
-    }
-
-    /**
-     * @param array $jsFiles
-     */
-    public function setJsFiles(array $jsFiles): void
-    {
-        $this->jsFiles = $jsFiles;
-    }
-
-    /**
-     * @return array
-     */
-    public function getExternalJsFiles(): array
-    {
-        return $this->externalJsFiles;
-    }
-
-    /**
-     * @param array $externalJsFiles
-     */
-    public function setExternalJsFiles(array $externalJsFiles): void
-    {
-        $this->externalJsFiles = $externalJsFiles;
-    }
-
-    /**
-     * @return string
-     */
-    public function getInlineJs(): string
-    {
-        return $this->inlineJs;
-    }
-
-    /**
-     * @param string $inlineJs
-     */
-    public function setInlineJs(string $inlineJs): void
-    {
-        $this->inlineJs = $inlineJs;
     }
 
     /**

@@ -5,7 +5,7 @@ namespace PhoenixPhp\Core;
 use PhoenixPhp\Utils\StringConversion;
 
 /**
- * wrapper for a whole set of pages
+ * Main Page Wrapper that all pages share. (For example header, footer, sidebar, ...)
  */
 abstract class BaseWrapper extends BasePage
 {
@@ -13,57 +13,48 @@ abstract class BaseWrapper extends BasePage
     //---- MEMBERS
 
     private string $pageContent;
-    protected string $title;
-
-
-    //---- ABSTRACT METHODS
-    //---- ABSTRACT METHODS
-
-    abstract function parseContent(): string;
-
-    abstract function parseVueComponents(): void;
 
 
     //---- GENERAL METHODS
 
     /**
-     * generates the path to the template and stores it inside the object
+     * This method generates the path to the template and stores it inside the object.
      */
     public function generateTemplate(): void
     {
-        //main-template
+        //main template
         $templatePath = 'PageWrapper/PageWrapper.html';
         if (!stream_resolve_include_path($templatePath)) {
-            throw new Exception('file ' . $templatePath . ' does not exist.');
+            throw new Exception('file "' . $templatePath . '" does not exist.');
         }
         $this->setTemplatePath($templatePath);
 
-        //sub-template
+        //sub template
         $templatePath = 'PageWrapper/PageWrapperSub.html';
         $this->setSubTemplatePath($templatePath);
     }
 
     /**
-     * calls the page contents and converts them into the object for later use
+     * This method calls the page contents and converts them into the object for later use.
+     *
      * @param BasePage $pageContent
+     * @throws Exception
      */
-    final public function renderPage($pageContent)
+    final public function renderPage($pageContent): void
     {
         $this->setPageContent($pageContent->render());
         $this->setTitle($pageContent->getTitle());
         $this->setDescription($pageContent->getDescription());
         $this->setVueComponents($pageContent->getVueComponents());
-        $this->setCssFiles($pageContent->getCssFiles());
-        $this->setJsFiles($pageContent->getJsFiles());
-        $this->setExternalJsFiles($pageContent->getExternalJsFiles());
-        $this->setInlineJs($pageContent->getInlineJs());
         $this->setCalledPage($pageContent->getCalledPage());
         $this->setCalledAction($pageContent->getCalledAction());
     }
 
     /**
-     * returns the page contents inside the wrapper
+     * This method renders the pages content and puts it into the wrapper.
+     *
      * @return string
+     * @throws Exception
      */
     public function render(): string
     {
@@ -101,7 +92,7 @@ abstract class BaseWrapper extends BasePage
             $moduleContent = $this->renderModule($debugConsole);
             $tplIndex->parse('DEBUG_CONTENT', $moduleContent);
 
-            //Fixme - Das hier mal besser machen
+            //FIXME - do this properly
             $components = $this->getVueComponents();
             $count = 0;
             foreach ($components as $component) {
@@ -124,10 +115,11 @@ abstract class BaseWrapper extends BasePage
         }
 
         //render includes
-        $cssString = $this->renderCss();
+        $assetHandler = AssetHandler::getInstance();
+        $cssString = $assetHandler->renderCss([]);
 
-        $jsExString = $this->renderExternalJs();
-        $jsInline = $this->getInlineJs();
+        $jsExString = $assetHandler->renderExternalJs();
+        $jsInline = $assetHandler->getInlineJs();
 
         $tplIndex->parse('CSS_INCLUDES', $cssString);
         $tplIndex->parse('VUE_COMPONENTS', PHP_EOL . $vueString);
@@ -135,8 +127,8 @@ abstract class BaseWrapper extends BasePage
         $tplIndex->parse('JS_INLINE', $jsInline);
 
         //render JS
-        if (count($this->getJsFiles()) > 0) {
-            $jsString = $this->renderJs();
+        if (count($assetHandler->getJsFiles()) > 0) {
+            $jsString = $assetHandler->renderJs();
             $tplIndex->parse('INTERNAL_JS', '<script src="/cache/' . $jsString . '.js"></script>');
         }
 

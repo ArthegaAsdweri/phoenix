@@ -22,6 +22,7 @@ class Exception extends \Exception implements IException
 
     /**
      * creates an exception
+     *
      * @param string $message
      * @param int $code
      */
@@ -35,6 +36,7 @@ class Exception extends \Exception implements IException
 
     /**
      * returns the exception as readable string
+     *
      * @return string $message
      */
     public function __toString(): string

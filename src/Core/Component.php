@@ -5,7 +5,7 @@ namespace PhoenixPhp\Core;
 use PhoenixPhp\Utils\StringConversion;
 
 /**
- * handles the sfc vue components
+ * This class handles conversion of Vue Single File Components to usable includes for the framework.
  */
 class Component extends Parser
 {
@@ -23,9 +23,9 @@ class Component extends Parser
     //---- GENERAL METHODS
 
     /**
-     * renders the component and fills the style and script tags for separation
+     * This method renders the component and fills the style and script tags for separation.
      */
-    public function renderComponent()
+    public function renderComponent(): void
     {
         $content = $this->getParsed();
         $templateArr = [];

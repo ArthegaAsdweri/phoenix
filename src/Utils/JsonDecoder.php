@@ -13,7 +13,7 @@ class JsonDecoder
     //---- GENERAL METHODS
 
     /**
-     * decodes the json string
+     * decodes the json string.
      * @param string $json json string
      * @return array|null json array or null on error
      */

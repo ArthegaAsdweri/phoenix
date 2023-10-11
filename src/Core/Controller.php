@@ -8,7 +8,7 @@ use PhoenixPhp\Utils\StringConversion;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * main entry point of the framework - utilizes the request, starts the session and returns the contents
+ * This class acts as the main entry point of the framework - utilizes the request, starts the session and returns the contents.
  */
 class Controller
 {
@@ -28,7 +28,7 @@ class Controller
     //---- CONSTRUCTOR
 
     /**
-     * initializes the framework by starting the session and utilizing the request
+     * This method initializes the framework by starting the session and utilizing the request.
      */
     public function __construct()
     {
@@ -45,7 +45,7 @@ class Controller
     //---- GENERAL METHODS
 
     /**
-     * utilizes the framework config and the local user config
+     * This method utilizes the framework and local user config.
      */
     private function utilizeConfig(): void
     {
@@ -73,7 +73,7 @@ class Controller
     }
 
     /**
-     * utilizes the framework specific request parameters
+     * This method utilizes the framework specific request parameters.
      */
     private function utilizeRequest(): void
     {
@@ -106,7 +106,7 @@ class Controller
     }
 
     /**
-     * starts the session
+     * This method starts the session.
      */
     private function setUpSession(): void
     {
@@ -118,7 +118,8 @@ class Controller
     }
 
     /**
-     * determines an optional alias for the page
+     * This method determines an optional alias for the page.
+     *
      * @param string $page name of the page
      * @return string $aliasPage the real page if the called page is an alias or the initial page if not
      */
@@ -136,9 +137,10 @@ class Controller
     }
 
     /**
-     * determines an optional alias for the action
+     * This method determines an optional alias for the action.
+     *
      * @param string $action name of the action
-     * @return string $aliasAction the real page if the called page is an alias or the initial page if not
+     * @return string $aliasAction the real action if the called action is an alias or the initial action if not
      */
     private function retrieveAliasForAction(string $action): string
     {
@@ -158,7 +160,8 @@ class Controller
     }
 
     /**
-     * determines the directory path
+     * This method determines the directory path.
+     *
      * @return string generated path with page and its action
      */
     private function retrieveDir(): string
@@ -177,7 +180,8 @@ class Controller
     }
 
     /**
-     * determines whether the called file exists
+     * This method determines whether the called file exists.
+     *
      * @return bool true: the file exists, false: the file does not exist
      */
     private function checkFile(): bool
@@ -190,11 +194,11 @@ class Controller
     }
 
     /**
-     * Diese Methode gibt die Inhalte der gesuchten Seite und ihrer Aktion aus
+     * This method returns the contents of the called page and its action.
      *
-     * @return string    Der Inhalt der Seite
+     * @return BasePage|string page contents
      */
-    private function callPage()
+    private function callPage(): BasePage|string
     {
         //was the link an alias?
         $aliasPage = $this->retrieveAliasForPage($this->getPage());
@@ -278,9 +282,10 @@ class Controller
     }
 
     /**
-     * Diese Methode ruft die entsprechende "Ajax"-Klasse auf
+     * This method calls an Ajax request.
      *
-     * @return string    ein JSON, das die Response des Ajax-Calls beinhaltet
+     * @return string json that contains the ajax response
+     * @throws Exception
      */
     private function callAjax(): string
     {
@@ -291,7 +296,9 @@ class Controller
             $action = StringConversion::toCamelCase($this->getAction());
 
             if (stream_resolve_include_path($path)) {
-                $className = PHPHP_PSR_NAMESPACE . '\Pages\\' . ucfirst($this->getPage()) . '\\' . ucfirst($action.'Ajax');
+                $className = PHPHP_PSR_NAMESPACE . '\Pages\\' . ucfirst($this->getPage()) . '\\' . ucfirst(
+                        $action . 'Ajax'
+                    );
             }
 
             /** @var BasePage $className */
@@ -318,23 +325,23 @@ class Controller
     }
 
     /**
-     * Diese Methode ruft ein "globales" Modul auf
+     * This method calls a global module.
      *
-     * @param string $moduleName Der Name des Moduls, das aufgerufen wird
-     *
-     * @return BaseModule    Das Modul, das aufgerufen wird
+     * @param string $moduleName
+     * @return BaseModule the called module
      */
     final protected function callModule(string $moduleName): BaseModule
     {
-        //FIXME - REGISTRIEREN VON CSS UND JS ÜBER MODUL MÖGLICH MACHEN
+        //FIXME - registering CSS and JS via asset handler
         $className = '\ArthegaAsdweri\Phoenix\\Modules\\' . strtoupper($moduleName) . '\\DefaultAction';
         return new $className();
     }
 
     /**
-     * Diese Methode gibt den Inhalt der Seite aus
+     * This method completely renders everything.
      *
-     * @return string    Der Inhalt der gerenderten Seite
+     * @return string rendered contents
+     * @throws Exception
      */
     public function render(): string
     {
@@ -368,20 +375,20 @@ class Controller
     }
 
     /**
-     * Diese Methode setzt den Status-Code bei unbekannten Seiten.
+     * This method defines the status code for unknown pages.
      */
     private function setStatusCode404(): void
     {
-        $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP / 1.0';
+        $protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP / 1.0';
         header($protocol . ' 404 not found');
     }
 
     /**
-     * Diese Methode setzt den Status-Code bei fehlerhaften Anfragen. (Anfrage kann nicht bearbeitet werden)
+     * This method defines the status code for internal errors.
      */
     private function setStatusCode400(): void
     {
-        $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP / 1.0';
+        $protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP / 1.0';
         header($protocol . ' 400 bad request');
     }
 

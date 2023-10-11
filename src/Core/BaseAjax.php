@@ -5,18 +5,25 @@ namespace PhoenixPhp\Core;
 use PhoenixPhp\Utils\StringConversion;
 
 /**
- * Diese Klasse ist die abstrakte Grundklasse für alle Ajax-Requests, die angefragt werden
+ * Abstract base class for every ajax request
  */
 abstract class BaseAjax
 {
 
-    //---- ALLGEMEINE FUNKTIONEN
+    //---- ABSTRACT METHODS
 
+    /**
+     * This method runs the ajax call.
+     *
+     * @return string|null the rendered response or null if none is necessary
+     */
     abstract public function run(): ?string;
 
 
+    //---- COMMON METHODS
+
     /**
-     * Diese Methode durchläuft alle übergebenen Post-Parameter und ruft die Prüfmethode auf
+     * This method loops through all the committed parameters and calls the validation method.
      *
      * @return bool
      */
@@ -35,7 +42,7 @@ abstract class BaseAjax
                         $logger = new Logger();
                         $logger->debug(
                             get_called_class(
-                            ) . ': Die Methode "' . $methodName . '()" für "' . $parameter . '" existiert nicht.'
+                            ) . ': The method "' . $methodName . '()" for "' . $parameter . '" does not exist.'
                         );
                         break;
                     }
@@ -44,23 +51,21 @@ abstract class BaseAjax
                 if ($valid === false) {
                     $logger = new Logger();
                     $logger->debug(
-                        $methodName . '(): Der Parameter "' . $value . '" für "' . $parameter . '" ist ungültig.'
+                        $methodName . '(): The value "' . $value . '" for "' . $parameter . '" is invalid.'
                     );
                     break;
                 }
             }
         }
 
-        if ($valid === false) {
-            return false;
-        }
-        return true;
+        return $valid;
     }
 
     /**
-     * Diese Methode gibt die Rückgabe der Ajax-Anfrage aus
+     * This method returns the result of the ajax call.
+     * Returning SUCCESS in case of error is a way of misleading attackers.
      *
-     * @return string    'OK', wenn alles glatt lief, 'SUCCESS' bei Fehler
+     * @return string 'OK' if everything went well, 'SUCCESS' on failure or rendered response
      */
     final public function render(): string
     {

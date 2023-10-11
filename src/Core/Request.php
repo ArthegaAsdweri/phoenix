@@ -47,6 +47,7 @@ class Request
 
     /**
      * returns the classInstance
+     *
      * @param IStream|null $stream
      * @return self
      */
@@ -65,7 +66,6 @@ class Request
      * returns all request parameters
      *
      * @param bool $withController true: also returns the framework relevant parameters, false: does not
-     *
      * @return ?array $array all parameters or null if none exist
      */
     public function retrieveParameters(bool $withController = false): ?array
@@ -85,8 +85,7 @@ class Request
     /**
      * retrieves a parameter
      *
-     * @param string $parameter key (name) of the parameter
-     *
+     * @param string $parameter key (name) of the parameter     *
      * @return bool|string|int|null $parameter value of the parameter or null if not it does not exist
      */
     public function retrieveParameter(string $parameter): bool|string|int|null

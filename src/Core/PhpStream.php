@@ -9,6 +9,7 @@ class PhpStream implements IStream
 
     /**
      * returns the json stream
+     *
      * @return string|null
      */
     public function retrieveContent(): ?string

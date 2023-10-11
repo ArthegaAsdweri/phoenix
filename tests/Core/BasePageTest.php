@@ -79,4 +79,45 @@ class BasePageTest extends TestCase
         $this->assertStringContainsString('Default.html', $content);
     }
 
+    /**
+     * @covers ::registerVueComponent
+     */
+    public function testRegisterVueComponent_ExistingComponent_ReturnsComponent(): void
+    {
+        $page = new \PhoenixPhp\Pages\Test\VueComponentAction();
+        $content = $page->render();
+        $this->assertStringContainsString('VueComponent.html', $content);
+    }
+
+    /**
+     * @covers ::registerVueComponent
+     */
+    public function testRegisterVueComponent_NonExistingComponent_ReturnsNull(): void
+    {
+        $page = new \PhoenixPhp\Pages\Test\VueMissingComponentAction();
+        $content = $page->render();
+        $this->assertStringContainsString('VueMissingComponent.html', $content);
+    }
+
+    /**
+     * @covers ::registerVueComponent
+     * @covers ::registerVueMixin
+     */
+    public function testRegisterVueMixin_localMixin_ReturnsComponent(): void
+    {
+        $page = new \PhoenixPhp\Pages\Test\VueMixinAction();
+        $content = $page->render();
+        $this->assertStringContainsString('VueMixin.html', $content);
+    }
+
+    /**
+     * @covers ::registerMainMixin
+     */
+    public function testRegisterMainMixin_existing_ReturnsComponent(): void
+    {
+        $page = new \PhoenixPhp\Pages\Test\VueMainMixinAction();
+        $content = $page->render();
+        $this->assertStringContainsString('VueMainMixin.html', $content);
+    }
+
 }

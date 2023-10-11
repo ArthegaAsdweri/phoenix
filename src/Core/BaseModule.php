@@ -2,8 +2,12 @@
 
 namespace PhoenixPhp\Core;
 
+use PhoenixPhp\Utils\JsonEncoder;
+
 /**
  * Base class for every module
+ *
+ * Modules are reusable components of logic (like a cart, a login, a navigation, ...) that are used among multiple pages.
  */
 abstract class BaseModule
 {
@@ -15,27 +19,27 @@ abstract class BaseModule
     protected ?array $vueComponents = null;
 
 
-    //---- ABSTRAKTE FUNKTIONEN
+    //---- ABSTRACT METHODS
 
     /**
-     * Diese Methode liefert das gesamte Modul als Inhalt zurück, sobald das Modul als Bestandteil der Seite aufgerufen wird
+     * This method renders the contents of the module as soon as it's being called as part of a page.
      *
-     * @return string    das Modul als gerendertes Template
+     * @return string rendered module
      */
     abstract public function parseContent(): string;
 
     /**
-     * Diese Methode kann genutzt werden, um Vue-Komponenten zu parsen
+     * This method registers vue components that might be part of the module.
      */
     abstract public function parseVueComponents(): void;
 
 
-    //---- ALLGEMEINE FUNKTIONEN
+    //---- COMMON METHODS
 
     /**
-     * Diese Methode generiert ein Array mit den Daten zum aktuellen Pfad der Seite
+     * This method generates the path to the actual module.
      *
-     * @return array    Array mit den Pfad-Daten
+     * @return array path data
      */
     public function retrieveModuleArray(): array
     {
@@ -45,7 +49,7 @@ abstract class BaseModule
         $module = strtolower($pathArray[3]);
         $action = (isset($pathArray[4])) ? strtolower(str_replace('Action', '', $pathArray[4])) : '';
 
-        //globales Modul liegt nicht in einem Projekt
+        //global modules are not part of the project
         if ($project === 'modules') {
             $project = '';
             $module = strtolower($pathArray[2]);
@@ -62,34 +66,34 @@ abstract class BaseModule
     }
 
     /**
-     * Diese Methode generiert den Pfad zum Template und speichert ihn abrufbar im Objekt
+     * This method creates the path to the template and saves it inside the object.
      */
     final public function generateTemplate(): void
     {
         $moduleData = $this->retrieveModuleArray();
 
-        //FIXME: KANN NUR TEMPLATES INNERHALB VON PROJEKTEN :(
+        //FIXME: recover ability to use templates outside of projects (for global modules)
 
         $module = ucfirst(strtolower($moduleData['module']));
         $action = ucfirst(strtolower($moduleData['action']));
 
-        //Haupt-Template
+        //main template
         $templatePath = 'Modules/' . $module . '/' . $action . '.html';
         if (!stream_resolve_include_path($templatePath)) {
             $templatePathGlobal = $moduleData['project'] . 'Modules/' . $module . '/' . $action . '.html';
             if (!stream_resolve_include_path($templatePathGlobal)) {
                 $logger = new Logger();
                 $logger->warning(
-                    'Die Datei ' . $templatePath . ' existiert nicht. Global existiert ebenfalls keine Variante: ' . $templatePathGlobal
+                    'The file ' . $templatePath . ' does not exist. Unfortunately there\'s also no global variant: ' . $templatePathGlobal
                 );
-                //FIXME: Hier ein globales "NOT FOUND" Modul erstellen
+                //FIXME: use a global "not found" module here
                 $templatePathGlobal = $moduleData['project'] . 'Modules/Notfound/Default.html';
             }
             $templatePath = $templatePathGlobal;
         }
         $this->setTemplatePath($templatePath);
 
-        //SubTemplate
+        //sub template
         $templatePath = 'Modules/' . $module . '/' . $action . '_sub.html';
         if (!stream_resolve_include_path($templatePath)) {
             $templatePath = $moduleData['project'] . 'Modules/' . $module . '/' . $action . '_sub.html';
@@ -102,14 +106,14 @@ abstract class BaseModule
     }
 
     /**
-     * Diese Methode registriert eine Vue-Komponente
+     * This method registers a vue component.
      *
-     * @param string $componentName Der Name der Komponente
-     * @param bool $childComponent true: es handelt sich um eine Kindkomponente, die nicht global regisrtiert wird
-     *
-     * @return Component|null       Die Komponente oder null, falls sie nicht gefunden wurde
+     * @param string $componentName name of the component
+     * @param bool $childComponent true if component is a child component which is not registered globally
+     * @return Component|null vue component or null if not found
+     * @throws Exception
      */
-    final protected function registerVueComponent(string $componentName, bool $childComponent = false): Component
+    final protected function registerVueComponent(string $componentName, bool $childComponent = false): ?Component
     {
         $moduleArray = $this->retrieveModuleArray();
         $project = $moduleArray['project'];
@@ -137,12 +141,13 @@ abstract class BaseModule
 
         $logger = new Logger();
         $logger->warning('Die Vue Komponente "' . $componentPath . '" wurde nicht gefunden.');
+        return null;
     }
 
     /**
-     * Diese Methode gibt den Inhalt des Moduls zurück.
+     * This method returns the contents of the module.
      *
-     * @return array    Der Inhalt des Moduls und der Vue-Components
+     * @return array contents of the module itself and its vue components
      */
     public function render(): array
     {
@@ -156,15 +161,14 @@ abstract class BaseModule
     }
 
     /**
-     * Diese Methode formatiert ein Array in nutzbares JSON-Format für HTML Tags (z.B. als Vue Prop)
+     * This method converts a string into a usable encoded format for HTML tags. For example to pass data to vue components.
      *
-     * @param array $dataArray Das Array, das als JSON benötigt wird
-     *
-     * @return string             Der Json-String
+     * @param array $dataArray
+     * @return string
      */
-    final protected function returnJsonForHtml(array $dataArray)
+    final protected function returnJsonForHtml(array $dataArray): string
     {
-        return htmlentities(json_encode($dataArray, JSON_HEX_QUOT), ENT_QUOTES);
+        return JsonEncoder::encodeForHtml($dataArray);
     }
 
 
@@ -175,26 +179,24 @@ abstract class BaseModule
         $this->templatePath = $val;
     }
 
-    protected function setSubTemplatePath(?string $val): void
-    {
-        $this->subTemplatePath = $val;
-    }
-
-    protected function setVueComponents(?array $val): void
-    {
-        $this->vueComponents = $val;
-    }
-
-    //---- GETTER
-
     protected function getTemplatePath(): string
     {
         return $this->templatePath;
     }
 
+    protected function setSubTemplatePath(?string $val): void
+    {
+        $this->subTemplatePath = $val;
+    }
+
     protected function getSubTemplatePath(): ?string
     {
         return $this->subTemplatePath;
+    }
+
+    protected function setVueComponents(?array $val): void
+    {
+        $this->vueComponents = $val;
     }
 
     protected function getVueComponents(): ?array

@@ -25,6 +25,7 @@ class Session
 
     /**
      * returns the instance
+     *
      * @return self
      */
     public static function getInstance(): self
@@ -40,6 +41,7 @@ class Session
 
     /**
      * stores values inside the php session
+     *
      * @param string $namespace session namespace
      * @param string $key session key
      * @param object|string|int|bool $value session value
@@ -51,6 +53,7 @@ class Session
 
     /**
      * reads values from the php session
+     *
      * @param string $namespace session namespace
      * @param string $key session key
      * @return object|string|int|bool|null session value
@@ -65,6 +68,7 @@ class Session
 
     /**
      * deletes a value from the php session
+     *
      * @param string $namespace session namespace
      * @param string $key session key
      */
@@ -77,6 +81,7 @@ class Session
 
     /**
      * returns the whole session
+     *
      * @return array
      */
     public function retrieveSession(): array

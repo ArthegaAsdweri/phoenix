@@ -1,0 +1,7 @@
+
+Config:
+  TEST: test
+  
+Aliases:
+  test:
+    - testalias

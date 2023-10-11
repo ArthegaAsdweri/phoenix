@@ -75,6 +75,7 @@ class Debugger
 
     /**
      * adds a query to the list of debug queries
+     *
      * @param string $query query to be logged
      * @param bool $toggle true: query can be toggled on and off, false: query cannot be toggled
      */
@@ -88,6 +89,7 @@ class Debugger
 
     /**
      * returns the array of debug queries
+     *
      * @return array array of debug queries
      */
     public static function retrieveDebugQueries(): array
