@@ -53,14 +53,15 @@ class AssetHandler
             return;
         }
 
-        $path2 = 'Resources/Css/' . $path;
-        if (!stream_resolve_include_path($path2)) {
+        $filePath = 'Resources/Css/' . $path;
+        if (!stream_resolve_include_path($filePath)) {
             if (!stream_resolve_include_path($path)) {
-                throw new Exception('The file "' . $path . '" does not exist. Same applies to "' . $path . '".');
+                throw new Exception('The file "' . $filePath . '" does not exist. Same applies to "' . $path . '".');
             }
+            $filePath = $path;
         }
 
-        $cssFiles[] = $path;
+        $cssFiles[] = $filePath;
         $this->setCssFiles($cssFiles);
     }
 
@@ -163,9 +164,12 @@ class AssetHandler
         $md5String = md5($cssFileString);
 
         $projectPath = $this->retrieveDirectoryPath();
+        $projectPath = str_replace('/app/vendor/phpunit/phpunit', '', $projectPath);
         $fp = fopen($projectPath . '/src/Resources/Cache/' . $md5String . '.css', 'w');
-        fwrite($fp, $cssContent);
-        fclose($fp);
+        if ($fp) {
+            fwrite($fp, $cssContent);
+            fclose($fp);
+        }
         return $md5String;
     }
 

@@ -13,6 +13,8 @@ class DefaultAction extends BasePage
      */
     public function parseContent(): string
     {
+        $this->registerCss('_Specimen/Resources/Css/Test.css');
+        $this->registerJs('_Specimen/Resources/Js/Test.js');
         $tplPage = new Parser($this->getTemplatePath());
         return $tplPage->retrieveTemplate();
     }
