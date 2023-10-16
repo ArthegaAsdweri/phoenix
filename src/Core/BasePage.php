@@ -116,7 +116,7 @@ abstract class BasePage
             $componentPath2 = __DIR__ . '/../Mixins/' . $componentName . '.vue';
         } else {
             $componentPath = 'Pages/' . $page . '/Components/' . $componentName . '.vue';
-            $componentPath2 = $project . 'Pages/' . $page . '/Components/' . $componentName . '.vue';
+            $componentPath2 = $project . '/Pages/' . $page . '/Components/' . $componentName . '.vue';
         }
 
         $found = stream_resolve_include_path($componentPath);
@@ -217,39 +217,6 @@ abstract class BasePage
     {
         $assets = AssetHandler::getInstance();
         $assets->registerInlineJs($code);
-    }
-
-    /**
-     * This method renders all the CSS files into one single file and returns its name for being used in the path.
-     *
-     * @return string name of the CSS file
-     */
-    final protected function renderCss(): string
-    {
-        $assets = AssetHandler::getInstance();
-        return $assets->renderCss($this->getVueComponents());
-    }
-
-    /**
-     * This method renders all the JS files into one single file and returns its name for being used in the path.
-     *
-     * @return string name of the JS file
-     */
-    final protected function renderJs(): string
-    {
-        $assets = AssetHandler::getInstance();
-        return $assets->renderJs();
-    }
-
-    /**
-     * This method renders the script tags for the external JS files
-     *
-     * @return string the JS files as <script>-tags
-     */
-    final protected function renderExternalJs(): string
-    {
-        $assets = AssetHandler::getInstance();
-        return $assets->renderExternalJs();
     }
 
     /**

@@ -20,6 +20,7 @@ class AssetHandlerTest extends TestCase
     //---- TESTS
 
     /**
+     * @runInSeparateProcess
      * @covers ::__construct
      * @covers ::getInstance
      */
@@ -31,7 +32,6 @@ class AssetHandlerTest extends TestCase
 
     /**
      * @covers ::registerCss
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRegisterCss_IncludingInvalidCss_ThrowsException(): void
     {
@@ -44,7 +44,6 @@ class AssetHandlerTest extends TestCase
      * @covers ::setCssFiles
      * @covers ::getCssFiles
      * @covers ::registerCss
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRegisterCss_IncludingSameFileTwice_Returns(): void
     {
@@ -60,7 +59,6 @@ class AssetHandlerTest extends TestCase
 
     /**
      * @covers ::registerJs
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRegisterJs_IncludingInvalidJs_ThrowsException(): void
     {
@@ -73,7 +71,6 @@ class AssetHandlerTest extends TestCase
      * @covers ::setJsFiles
      * @covers ::getJsFiles
      * @covers ::registerJs
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRegisterJs_IncludingSameFileTwice_Returns(): void
     {
@@ -88,22 +85,19 @@ class AssetHandlerTest extends TestCase
 
     /**
      * @covers ::registerExternalJs
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRegisterExternalJs_ValidString_ReturnsArray(): void
     {
-        $string = 'https://www.test.de';
         $handler = AssetHandler::getInstance();
-        $handler->registerExternalJs($string);
+        $handler->registerExternalJs(self::JS_EXT_FILE);
         $jsFiles = $handler->getExternalJsFiles();
-        $this->assertEquals($string, $jsFiles[0]);
+        $this->assertEquals(self::JS_EXT_FILE, $jsFiles[0]);
     }
 
     /**
      * @covers ::setExternalJsFiles
      * @covers ::getExternalJsFiles
      * @covers ::registerExternalJs
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRegisterExternalJs_IncludingSameFileTwice_Returns(): void
     {
@@ -120,7 +114,6 @@ class AssetHandlerTest extends TestCase
      * @covers ::registerInlineJs
      * @covers ::getInlineJs
      * @covers ::setInlineJs
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRegisterInlineJs_ValidString_ReturnsCode(): void
     {
@@ -135,7 +128,6 @@ class AssetHandlerTest extends TestCase
     /**
      * @covers ::renderCss
      * @covers ::retrieveDirectoryPath
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRenderCss_withComponentStyle_createsMergedFile(): void
     {
@@ -151,7 +143,6 @@ class AssetHandlerTest extends TestCase
 
     /**
      * @covers ::renderJs
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRenderJs_createsFile(): void
     {
@@ -164,13 +155,12 @@ class AssetHandlerTest extends TestCase
 
     /**
      * @covers ::renderExternalJs
-     * @depends testConstruct_NoInstance_CreatesInstance
      */
     public function testRenderExternalJs_withComponentStyle_createsMergedFile(): void
     {
         $handler = AssetHandler::getInstance();
         $handler->registerExternalJs(self::JS_EXT_FILE);
         $fileString = $handler->renderExternalJs();
-        $this->assertEquals('<script src="https://www.test.de"></script>', $fileString);
+        $this->assertEquals('<script src="'.self::JS_EXT_FILE.'"></script>', $fileString);
     }
 }

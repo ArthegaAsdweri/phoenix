@@ -19,6 +19,7 @@
 
     <php>
         <const name="PHPHP_LOG_FILE" value="/var/log/phoenix.log"/>
+        <const name="PHPHP_PSR_NAMESPACE" value="PhoenixPhp"/>
     </php>
 
     <coverage
