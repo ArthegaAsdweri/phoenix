@@ -28,40 +28,31 @@ class Component extends Parser
     public function renderComponent(): void
     {
         $content = $this->getParsed();
-        $templateArr = [];
-        preg_match('/<template>([\s\S]*)<\/template>([\s\S]*)/', $content, $templateArr);
+        $templateArr = $scriptArr = $styleArr = [];
+        preg_match('/<template>([\s\S]*)<\/template>/', $content, $templateArr);
         $template = $templateArr[1];
-        $scriptArr = explode('</script>', $templateArr[2]);
-        $script = str_replace('<script>', '', $scriptArr[0] . '</script>');
+        preg_match('/<script>([\s\S]*)<\/script>/', $content, $scriptArr);
+        $script = str_replace(['<script>', '</script>'], '', $scriptArr[1]);
+        preg_match('/<style( scoped)?>([\s\S][^<]*)<\/style>/', $content, $styleArr);
+        $style = trim(str_replace(['<style>', '</style>'], '', $styleArr[2]));
 
         $camelName = StringConversion::toCamelCase($this->getName());
+        $bracket = ')';
         if ($this->isChild()) {
             $script = preg_replace('/^[\s\S]*export default {/', 'var ' . $camelName . ' = {', $script);
             $script = preg_replace('/export default {/', 'var ' . $camelName . ' = {', $script);
             $bracket = '';
         } else {
-            $snakeName = str_replace('_', '-', StringConversion::toSnakeCase($this->getName()));
-            $script = preg_replace('/^[\s\S]*export default {\s*name: /', 'Vue.component(', $script);
-            $script = preg_replace('/export default {\s*name: /', 'Vue.component(', $script);
-            $script = str_replace(
-                'Vue.component("' . $camelName . '",',
-                'Vue.component("' . $camelName . '", {',
-                $script
-            );
-            $bracket = ')';
+            $script = preg_replace('/^^[\s\S]*export default {\s*name:[\s]*(.*)"(,)+([\s\S]*)/', 'Vue.component($1", {$3', $script);
         }
 
         if (!$this->isMixin()) {
             $script = preg_replace(
-                '/(\s*)};*(\s*)<\/script>/',
-                ',' . PHP_EOL . "\t" . 'template:`' . $template . '`' . PHP_EOL . '}' . $bracket . ';',
+                '/([\s\S]*)}/',
+                '$1, template:`' . $template . '`}'.$bracket.';',
                 $script
             );
-        } else {
-            $script = preg_replace('/(\s*)};*(\s*)<\/script>/', PHP_EOL . "\t" . '}' . $bracket . ';', $script);
         }
-
-        $style = str_replace(['<style>', '<style scoped>', '</style>'], '', $scriptArr[1]);
 
         $this->setVScript($script);
         $this->setVStyle($style);

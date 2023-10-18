@@ -1,6 +1,6 @@
 <?php
 
-namespace PhoenixPhp\Modules\Test;
+namespace PhoenixPhp\phoenixphp\Modules\Test;
 
 use PhoenixPhp\Core\BaseModule;
 use PhoenixPhp\Core\Parser;
@@ -18,7 +18,7 @@ class DefaultAction extends BaseModule
 
     public function parseVueComponents(): void
     {
-        $this->registerVueComponent('module-test');
+        $this->registerVueComponent('module-test2');
     }
 
 }

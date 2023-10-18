@@ -41,7 +41,7 @@ abstract class BaseModule
      *
      * @return array path data
      */
-    public function retrieveModuleArray(): array
+    private function retrieveModuleArray(): array
     {
         $className = get_called_class();
         $pathArray = explode('\\', $className);
@@ -51,11 +51,9 @@ abstract class BaseModule
 
         //global modules are not part of the project
         if ($project === 'modules') {
-            $project = '';
+            $project = strtolower($pathArray[0]);
             $module = strtolower($pathArray[2]);
             $action = strtolower(str_replace('Action', '', $pathArray[3]));
-        } else {
-            $project .= '/';
         }
 
         return [
@@ -80,27 +78,13 @@ abstract class BaseModule
         //main template
         $templatePath = 'Modules/' . $module . '/' . $action . '.html';
         if (!stream_resolve_include_path($templatePath)) {
-            $templatePathGlobal = $moduleData['project'] . 'Modules/' . $module . '/' . $action . '.html';
-            if (!stream_resolve_include_path($templatePathGlobal)) {
-                $logger = new Logger();
-                $logger->warning(
-                    'The file ' . $templatePath . ' does not exist. Unfortunately there\'s also no global variant: ' . $templatePathGlobal
-                );
-                //FIXME: use a global "not found" module here
-                $templatePathGlobal = $moduleData['project'] . 'Modules/Notfound/Default.html';
-            }
-            $templatePath = $templatePathGlobal;
+            throw new Exception('The file ' . $templatePath . ' does not exist.');
         }
         $this->setTemplatePath($templatePath);
 
         //sub template
-        $templatePath = 'Modules/' . $module . '/' . $action . '_sub.html';
-        if (!stream_resolve_include_path($templatePath)) {
-            $templatePath = $moduleData['project'] . 'Modules/' . $module . '/' . $action . '_sub.html';
-            $templatePath = stream_resolve_include_path($templatePath);
-        }
-
-        if ($templatePath) {
+        $templatePath = 'Modules/' . $module . '/' . $action . 'Sub.html';
+        if (stream_resolve_include_path($templatePath)) {
             $this->setSubTemplatePath($templatePath);
         }
     }
@@ -119,7 +103,7 @@ abstract class BaseModule
         $project = $moduleArray['project'];
         $module = ucfirst(strtolower($moduleArray['module']));
         $componentPath = 'Modules/' . $module . '/Components/' . $componentName . '.vue';
-        $componentPath2 = $project . 'Modules/' . $module . '/Components/' . $componentName . '.vue';
+        $componentPath2 = $project . '/Modules/' . $module . '/Components/' . $componentName . '.vue';
 
         $found = stream_resolve_include_path($componentPath);
         $found2 = stream_resolve_include_path($componentPath2);

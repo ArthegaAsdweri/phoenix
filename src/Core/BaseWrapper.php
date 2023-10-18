@@ -20,12 +20,14 @@ abstract class BaseWrapper extends BasePage
     /**
      * This method generates the path to the template and stores it inside the object.
      */
-    public function generateTemplate(): void
+    private function generateTemplate(): void
     {
         //main template
         $templatePath = 'PageWrapper/PageWrapper.html';
         if (!stream_resolve_include_path($templatePath)) {
+            //@codeCoverageIgnoreStart
             throw new Exception('file "' . $templatePath . '" does not exist.');
+            //@codeCoverageIgnoreEnd
         }
         $this->setTemplatePath($templatePath);
 
@@ -75,10 +77,8 @@ abstract class BaseWrapper extends BasePage
             if ($component->getMixinType() === 'GLOBAL') {
                 $camelMixin = StringConversion::toCamelCase($component->getName());
                 $globalMixins[] = 'Vue.mixin(' . $camelMixin . ');';
-            } else {
-                if ($component->getMixinType() === 'VUE') {
-                    $mainMixins[] = StringConversion::toCamelCase($component->getName());
-                }
+            } elseif ($component->getMixinType() === 'VUE') {
+                $mainMixins[] = StringConversion::toCamelCase($component->getName());
             }
             $vueString .= $component->getVScript();
         }
@@ -107,11 +107,19 @@ abstract class BaseWrapper extends BasePage
         */
 
         if (count($globalMixins) > 0) {
-            $tplIndex->parse('VUE_MIXIN', PHP_EOL . implode(PHP_EOL, $globalMixins));
+            $tplIndex->parse(
+                'VUE_MIXIN',
+                '
+            ' . implode(PHP_EOL, $globalMixins)
+            );
         }
 
         if (count($mainMixins) > 0) {
-            $tplIndex->parse('MAIN_MIXINS', PHP_EOL . 'mixins: [' . implode(PHP_EOL, $mainMixins) . '],');
+            $tplIndex->parse(
+                'MAIN_MIXINS',
+                '
+            mixins: [' . implode(PHP_EOL, $mainMixins) . '],'
+            );
         }
 
         //render includes
@@ -122,9 +130,17 @@ abstract class BaseWrapper extends BasePage
         $jsInline = $assetHandler->getInlineJs();
 
         $tplIndex->parse('CSS_INCLUDES', $cssString);
-        $tplIndex->parse('VUE_COMPONENTS', PHP_EOL . $vueString);
+        $tplIndex->parse(
+            'VUE_COMPONENTS',
+            '
+        ' . $vueString
+        );
         $tplIndex->parse('EXTERNAL_JS', $jsExString);
-        $tplIndex->parse('JS_INLINE', $jsInline);
+        $tplIndex->parse(
+            'JS_INLINE',
+            '
+        ' . $jsInline
+        );
 
         //render JS
         if (count($assetHandler->getJsFiles()) > 0) {
@@ -134,8 +150,10 @@ abstract class BaseWrapper extends BasePage
 
         //render vue dev mode
         if (getenv('DEVELOPER')) {
+            //@codeCoverageIgnoreStart
             $tplIndex->parse('VUE_DEVELOPMENT_URL', '/dist/vue.js');
             $tplIndex->parse('VUE_DEVELOPMENT', PHP_EOL . 'Vue.config.devtools = true;');
+            //@codeCoverageIgnoreEnd
         }
 
         //render vuetify

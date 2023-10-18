@@ -30,6 +30,10 @@
             <directory suffix=".php">src</directory>
         </include>
 
+        <exclude>
+            <file>src/Core/PhpStream.php</file>
+        </exclude>
+
         <report>
             <html outputDirectory=".phpunit.cache/code-coverage/html-coverage" lowUpperBound="50" highLowerBound="90"/>
         </report>

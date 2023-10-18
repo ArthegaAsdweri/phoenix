@@ -72,7 +72,7 @@ abstract class BasePage
     /**
      * This method creates the path to the template and saves it inside the object.
      */
-    public function generateTemplate(): void
+    private function generateTemplate(): void
     {
         $pageData = $this->retrievePageArray();
 
@@ -86,9 +86,6 @@ abstract class BasePage
 
             //sub template
             $templatePath = 'Pages/' . $pageData['page'] . '/' . $pageData['action'] . 'Sub.html';
-            if (!stream_resolve_include_path($templatePath)) {
-                $templatePath = stream_resolve_include_path($templatePath);
-            }
             $this->setSubTemplatePath($templatePath);
         }
     }

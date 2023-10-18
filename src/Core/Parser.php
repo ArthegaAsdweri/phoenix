@@ -41,7 +41,7 @@ class Parser
                 $pos2 = strpos($fileContent, $closingTag);
                 $startPos = $pos1 + strlen($tag);
                 $endPos = $pos2 - $startPos;
-                $fileContent = substr($fileContent, $startPos, $endPos);
+                $fileContent = trim(substr($fileContent, $startPos, $endPos));
             }
 
             $this->setOriginal($fileContent);

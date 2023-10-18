@@ -13,6 +13,7 @@ class RequestTest extends TestCase
     //---- TESTS
 
     /**
+     * @runInSeparateProcess
      * @covers ::__construct
      * @covers ::getInstance
      * @covers ::setRequest
