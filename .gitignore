@@ -1,3 +1,5 @@
 .idea
 .phpunit.cache
+.phpdoc
 vendor
+composer.lock

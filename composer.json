@@ -20,7 +20,8 @@
    "require-dev": {
       "phpunit/phpunit": "^9",
       "phpstan/phpstan": "^1",
-      "psr/log": "3.0.0"
+      "psr/log": "3.0.0",
+      "symfony/yaml": "6.*"
    },
    "autoload": {
       "psr-4": {

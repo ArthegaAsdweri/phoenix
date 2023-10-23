@@ -28,6 +28,7 @@ class SessionTest extends TestCase
     //---- TESTS
 
     /**
+     * @runInSeparateProcess
      * @covers ::__construct
      * @covers ::getInstance
      */
@@ -40,13 +41,17 @@ class SessionTest extends TestCase
     /**
      * @covers ::put
      * @covers ::retrieve
+     * @covers ::delete
      */
     public function testPutRetrieve_validSessionKey_EqualsGiven(): void
     {
         $given = 'value';
         $this->session->put('TEST', 'TESTKEY', $given);
         $result = $this->session->retrieve('TEST', 'TESTKEY');
+        $this->session->delete('TEST', 'TESTKEY');
+        $result2 = $this->session->retrieve('TEST', 'TESTKEY');
         $this->assertEquals($given, $result);
+        $this->assertEquals(null, $result2);
     }
 
     /**
@@ -59,6 +64,7 @@ class SessionTest extends TestCase
     }
 
     /**
+     * @runInSeparateProcess
      * @covers ::retrieveSession
      * @covers ::reset
      */
@@ -77,5 +83,4 @@ class SessionTest extends TestCase
         $this->session->reset();
         $this->assertEquals([], $this->session->retrieveSession());
     }
-
 }

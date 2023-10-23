@@ -16,7 +16,7 @@ class Logger implements LoggerInterface
     /**
      * system offline - gather all available resources to bring it back online
      * @param string $message
-     * @param array $contextt
+     * @param array $context
      */
     public function emergency($message, array $context = []): void
     {
