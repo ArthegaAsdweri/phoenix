@@ -128,8 +128,17 @@ class Controller
         $aliases = $this->getAliases();
         if ($aliases !== null) {
             foreach ($this->getAliases() as $aliasPage => $aliasOptions) {
-                if (in_array($page, $aliasOptions)) {
-                    return $aliasPage;
+                if(is_array($aliasOptions)) {
+                    if(array_is_list($aliasOptions)) {
+                        if (in_array($page, $aliasOptions)) {
+                            return $aliasPage;
+                        }                            
+                    }
+                    else {
+                        if(in_array($page, array_keys($aliasOptions))) {
+                            return $aliasPage;
+                        }
+                    }
                 }
             }
         }
@@ -227,24 +236,16 @@ class Controller
             $fileCheck = $this->checkFile(true);
         }
 
-        //---- GLOBALE KLASSE PRÜFEN
-
+        //check for "global" class that might exist in the framework
         if (!$fileCheck && $this->getAction() !== 'default') {
             $this->setAction('default');
             $fileCheck = $this->checkFile(true);
         }
 
-        //---- GLOBALE KLASSE NICHT GEFUNDEN -> DEFAULT KLASSE ?
-
+        //still not found -> framework default action?
         if (!$fileCheck) {
             $this->setPage('oops');
             $fileCheck = $this->checkFile();
-            $this->setStatusCode404();
-        }
-
-        //everything failed - 404
-        if (!$fileCheck) {
-            $this->checkFile(true);
             $this->setStatusCode404();
         }
 
@@ -263,7 +264,8 @@ class Controller
                 $class->setCalledPage($this->getCalledPage());
                 $class->setCalledAction($originalAction);
                 $class->setCalledArgument($this->getArgument());
-            } catch (\Error $e) {
+            } //framework 404
+            catch (\Error $e) {
                 /** @var BasePage $class */
                 $class = new $globalClassName();
                 $class->setCalledPage($this->getCalledPage());

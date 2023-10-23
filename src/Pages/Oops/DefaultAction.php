@@ -6,6 +6,8 @@ use PhoenixPhp\Core\BasePage;
 
 class DefaultAction extends BasePage
 {
+    
+    protected bool $noTemplate = true;
 
     public function parseContent(): string
     {

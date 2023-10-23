@@ -26,11 +26,13 @@ class Request
             $jsonArray = $decoder->decode($stream->retrieveContent());
 
             if ($decoder->getError() !== null) {
+                //@codeCoverageIgnoreStart
                 $logger = new Logger();
                 $logger->critical(
                     'invalid request: json_decode error: ' . $decoder->getError(),
                     [$stream]
                 );
+                //@codeCoverageIgnoreEnd
             }
 
             if ($jsonArray) {

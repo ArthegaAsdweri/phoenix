@@ -32,6 +32,7 @@
 
         <exclude>
             <file>src/Core/PhpStream.php</file>
+            <file>src/Core/ErrorCollector.php</file>
         </exclude>
 
         <report>

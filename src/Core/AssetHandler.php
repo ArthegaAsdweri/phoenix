@@ -167,8 +167,10 @@ class AssetHandler
         $projectPath = str_replace('/app/vendor/phpunit/phpunit', '', $projectPath);
         $fp = fopen($projectPath . '/src/Resources/Cache/' . $md5String . '.css', 'w');
         if ($fp) {
+            //@codeCoverageIgnoreStart
             fwrite($fp, $cssContent);
             fclose($fp);
+            //@codeCoverageIgnoreEnd
         }
         return $md5String;
     }

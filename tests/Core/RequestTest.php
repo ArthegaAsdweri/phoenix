@@ -31,7 +31,8 @@ class RequestTest extends TestCase
      */
     public function testRetrieveParameters_WithoutRequest_ReturnsNull(): void
     {
-        $request = Request::getInstance();
+        $stream = new TestStream();
+        $request = Request::getInstance($stream);
         $request->setRequest([]);
         $result = $request->retrieveParameters();
         $this->assertNull($result);

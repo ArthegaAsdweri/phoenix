@@ -27,6 +27,8 @@ class ControllerTest extends TestCase
      * @covers ::setAction
      * @covers ::getAction
      * @covers ::setArgument
+     * @covers ::getCalledPage
+     * @covers ::getArgument
      */
     public function testConstruct_RenderTestPage_ReturnsPage(): void
     {
@@ -63,6 +65,7 @@ class ControllerTest extends TestCase
     /**
      * @runInSeparateProcess
      * @covers ::utilizeConfig
+     * @covers ::utilizeRequest
      */
     public function testConstruct_WithLocalConfig_ReturnsPage(): void
     {
@@ -71,8 +74,12 @@ Config:
   TEST: test
   
 Aliases:
-  test:
-    - testalias');
+  test:  
+    testalias: testalias
+    actions:
+      default:
+        - alias
+');
         $stream = new TestStream();
         $request = Request::getInstance($stream);
         $request->putParameters([
@@ -88,6 +95,7 @@ Aliases:
     /**
      * @covers ::__construct
      * @covers ::retrieveAliasForPage
+     * @covers ::callPage
      */
     public function testConstruct_RenderValidAliasPage_ReturnsPage(): void
     {
@@ -101,6 +109,80 @@ Aliases:
         $controller->setAliases(['test' => ['Pikachu']]);
         $pageContent = $controller->render();
         $this->assertStringContainsString("WRAPPER\r\nDefault.html\r\nWRAPPER", $pageContent);
+    }
+
+    /**
+     * @covers ::__construct
+     * @covers ::retrieveAliasForPage
+     * @covers ::retrieveAliasForAction
+     * @covers ::getAliases
+     * @covers ::setAliases
+     * @covers ::callPage
+     */
+    public function testConstruct_RenderValidAliasAction_ReturnsPage(): void
+    {
+        $stream = new TestStream();
+        $request = Request::getInstance($stream);
+        $request->putParameters([
+            'requestPage' => 'testalias',
+            'requestAction' => 'alias'
+        ]);
+        $controller = new Controller();
+        $controller->setAliases(['test' => ['testalias' => 'testalias', 'actions' => ['default' => ['alias']]]]);
+        $pageContent = $controller->render();
+        $this->assertStringContainsString("WRAPPER\r\nDefault.html\r\nWRAPPER", $pageContent);
+    }
+    
+    /**
+     * @covers ::__construct
+     * @covers ::retrieveAliasForAction
+     * @covers ::callPage
+     * @covers ::setStatusCode404
+     * @covers ::checkFile
+     */
+    public function testConstruct_RenderInvalidAliasAction_Returns404Page(): void
+    {
+        $stream = new TestStream();
+        $request = Request::getInstance($stream);
+        $request->putParameters([
+            'requestPage' => 'testalias',
+            'requestAction' => 'Pikachu'
+        ]);
+        $controller = new Controller();
+        $pageContent = $controller->render();
+        $this->assertStringContainsString("404 - not found", $pageContent);
+    }
+    
+    /**
+     * @covers ::__construct
+     * @covers ::retrieveAliasForPage
+     */
+    public function testConstruct_RenderInvalidAliasPage_Returns404Page(): void
+    {
+        $stream = new TestStream();
+        $request = Request::getInstance($stream);
+        $request->putParameters([
+            'requestPage' => 'Pikachu',
+            'requestAction' => 'test'
+        ]);
+        $controller = new Controller();
+        $pageContent = $controller->render();
+        $this->assertStringContainsString("404 - not found", $pageContent);
+    }
+    
+    /**
+     * @covers ::__construct
+     * @covers ::utilizeRequest
+     * @covers ::callPage
+     */
+    public function testUtilizeRequest_WithoutParameters_Returns404Page(): void
+    {
+        $stream = new TestStream();
+        $request = Request::getInstance($stream);
+        $request->deleteAllParameters();
+        $controller = new Controller();
+        $pageContent = $controller->render();
+        $this->assertStringContainsString("404 - not found", $pageContent);
     }
 
     /*

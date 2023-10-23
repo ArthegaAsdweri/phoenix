@@ -2,7 +2,7 @@
 
 require_once('vendor/autoload.php');
 
-set_include_path('tests');
+set_include_path('src:tests');
 
 #\PhoenixPhp\Core\Session::getInstance();
 

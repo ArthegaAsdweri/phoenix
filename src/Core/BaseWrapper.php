@@ -124,7 +124,7 @@ abstract class BaseWrapper extends BasePage
 
         //render includes
         $assetHandler = AssetHandler::getInstance();
-        $cssString = $assetHandler->renderCss([]);
+        $cssString = $assetHandler->renderCss($components);
 
         $jsExString = $assetHandler->renderExternalJs();
         $jsInline = $assetHandler->getInlineJs();
