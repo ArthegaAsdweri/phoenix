@@ -123,6 +123,30 @@ class ComponentTest extends TestCase
             $style
         );
     }
+    
+    /**
+     * @covers ::renderComponent
+     */
+    public function testRenderComponent_InvalidComponentMissingScriptTag_ThrowsException(): void
+    {
+        $this->expectException('\PhoenixPhp\Core\Exception');
+        $name = 'invalid-missing-script';
+        $component = new Component('Pages/Test/Components/invalid-missing-script.vue');
+        $component->setName($name);
+        $component->renderComponent();
+    }    
+    
+    /**
+     * @covers ::renderComponent
+     */
+    public function testRenderComponent_InvalidComponentMissingTemplateTag_ThrowsException(): void
+    {
+        $this->expectException('\PhoenixPhp\Core\Exception');
+        $name = 'invalid-missing-template';
+        $component = new Component('Pages/Test/Components/invalid-missing-template.vue');
+        $component->setName($name);
+        $component->renderComponent();
+    }
 
     /**
      * @covers ::getMixinType

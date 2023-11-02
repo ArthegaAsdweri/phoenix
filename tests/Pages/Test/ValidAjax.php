@@ -4,7 +4,7 @@ namespace PhoenixPhp\Pages\Test;
 
 use PhoenixPhp\Core\BaseAjax;
 
-class ValidAjaxAction extends BaseAjax
+class ValidAjax extends BaseAjax
 {
 
     public function validateTestKey(string $key)

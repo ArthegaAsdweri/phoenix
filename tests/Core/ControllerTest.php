@@ -34,6 +34,7 @@ class ControllerTest extends TestCase
     {
         $stream = new TestStream();
         $request = Request::getInstance($stream);
+        $request->deleteAllParameters();
         $request->putParameters([
             'requestPage' => 'test'
         ]);
@@ -185,58 +186,48 @@ Aliases:
         $this->assertStringContainsString("404 - not found", $pageContent);
     }
 
-    /*
-    public function testConstruct_RenderAjax_ReturnsOK(): void
+    
+    /**
+     * @covers ::__construct
+     * @covers ::utilizeRequest
+     * @covers ::callAjax
+     * @covers ::retrieveDir
+     * @covers ::setAjaxCall
+     * @covers ::isAjaxCall
+     * @covers ::render
+     */
+    public function testConstruct_RenderValidAjax_ReturnsOK(): void
     {
-        $request = Request::getInstance();
+        $_SERVER['HTTP_AJAX'] = true;
+        $stream = new TestStream();
+        $request = Request::getInstance($stream);
+        $request->deleteAllParameters();
         $request->putParameters([
-            'requestPage' => 'ajax',
-            'requestAction' => 'cart',
-            'requestArgument' => 'product_add',
-            'product' => 1,
-            'size' => 1
+            'requestPage' => 'test',
+            'requestAction' => 'valid',
+            'testKey' => 'test'
         ]);
         $controller = new Controller();
+        $controller->setAjaxCall(true);
         $pageContent = $controller->render();
-        $this->assertEquals('{"content":"{\"price\":6.9,\"amount\":1}"}', $pageContent);
+        $this->assertEquals('{"content":"AjaxContent"}', $pageContent);
     }
-    */
-
     /**
-     * Funktioniert plötzlich nicht mehr - "Standard input code (Zeile 166) Zend OPcache can't be temporary enabled (it may be only disabled till the end of request)"
-     * Erstmal raus die Tests - Mit Docker vielleicht kein Problem mehr - vermutlich ist die config des vmx Containers wieder konfliktiv
-     *
-     * @runInSeparateProcess
-     *
-     * public function testConstruct_RenderInvalidPage_ReturnsPageNotFound() : void {
-     * $request = Request::getInstance();
-     * $request->putParameters([
-     * 'requestPage'   => 'Pikachu',
-     * 'requestAction' => 'Pikachu'
-     * ]);
-     * $controller  = new Controller();
-     * $pageContent = $controller->render();
-     * $this->assertStringContainsString('404', $pageContent);
-     * }
+     * @covers ::callAjax
+     * @covers ::setStatusCode400
      */
-
-    /**
-     * Funktioniert plötzlich nicht mehr - "Standard input code (Zeile 166) Zend OPcache can't be temporary enabled (it may be only disabled till the end of request)"
-     * Erstmal raus die Tests - Mit Docker vielleicht kein Problem mehr - vermutlich ist die config des vmx Containers wieder konfliktiv
-     *
-     * @runInSeparateProcess
-     *
-     * public function testConstruct_RenderInvalidAjax_ReturnsSUCCESS() : void {
-     * $request = Request::getInstance();
-     * $request->putParameters([
-     * 'requestPage'     => 'ajax',
-     * 'requestAction'   => 'cart',
-     * 'requestArgument' => 'Pikachu'
-     * ]);
-     * $controller  = new Controller();
-     * $pageContent = $controller->render();
-     * $this->assertEquals('SUCCESS', $pageContent);
-     * }
-     */
-
+    public function testConstruct_RenderInvalidAjax_Returns400(): void
+    {
+        $_SERVER['HTTP_AJAX'] = true;
+        $stream = new TestStream();
+        $request = Request::getInstance($stream);
+        $request->deleteAllParameters();
+        $request->putParameters([
+            'requestPage' => 'pikachu'
+        ]);
+        $controller = new Controller();
+        $controller->setAjaxCall(true);
+        $pageContent = $controller->render();
+        $this->assertEquals('{"content":"Bad Request"}', $pageContent);
+    }    
 }

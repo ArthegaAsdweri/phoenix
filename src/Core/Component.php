@@ -35,6 +35,14 @@ class Component extends Parser
         $script = str_replace(['<script>', '</script>'], '', $scriptArr[1]);
         preg_match('/<style( scoped)?>([\s\S][^<]*)<\/style>/', $content, $styleArr);
         $style = trim(str_replace(['<style>', '</style>'], '', $styleArr[2]));
+        
+        if(!$this->isMixin() && ($template === '' || $template === null)) {
+            throw new Exception('You need a <template>-Tag in the component which defines the HTML-content of the component.');
+        }
+        
+        if($script === '' || $script === null) {
+            throw new Exception('You need a <script>-Tag in the component which defines the vue component itself.');
+        }
 
         $camelName = StringConversion::toCamelCase($this->getName());
         $bracket = ')';

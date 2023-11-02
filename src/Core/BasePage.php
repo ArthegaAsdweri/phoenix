@@ -174,12 +174,13 @@ abstract class BasePage
      * This method registers a CSS file.
      *
      * @param string $path path to the file
+     * @param bool $prepend true: prepend the file to the list, false: append it to the list
      * @throws Exception
      */
-    final protected function registerCss(string $path): void
+    final protected function registerCss(string $path, bool $prepend = false): void
     {
         $assets = AssetHandler::getInstance();
-        $assets->registerCss($path);
+        $assets->registerCss($path, $prepend);
     }
 
     /**

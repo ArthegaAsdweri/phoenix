@@ -42,9 +42,10 @@ class AssetHandler
      * This method registers a CSS file.
      *
      * @param string $path path to the file
+     * @param bool $prepend true: prepend the file to the list, false: append it to the list
      * @throws Exception
      */
-    final public function registerCss(string $path): void
+    final public function registerCss(string $path, bool $prepend = false): void
     {
         $cssFiles = $this->getCssFiles();
 
@@ -60,8 +61,12 @@ class AssetHandler
             }
             $filePath = $path;
         }
-
-        $cssFiles[] = $filePath;
+        
+        if ($prepend === true) {
+            array_unshift($cssFiles, $filePath);
+        } else {
+            $cssFiles[] = $filePath;
+        }
         $this->setCssFiles($cssFiles);
     }
 

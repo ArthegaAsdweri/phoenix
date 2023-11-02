@@ -21,8 +21,7 @@ class BaseAjaxTest extends TestCase
         $stream = new TestStream();
         $request = Request::getInstance($stream);
         $request->deleteAllParameters();
-        $_SERVER['HTTP_AJAX'] = true;
-        $call = new \PhoenixPhp\Pages\Test\ValidAjaxAction();
+        $call = new \PhoenixPhp\Pages\Test\ValidAjax();
         $content = $call->render();
         $this->assertEquals('AjaxContent', $content);
     }
@@ -37,14 +36,12 @@ class BaseAjaxTest extends TestCase
         $request = Request::getInstance($stream);
         $request->deleteAllParameters();
         $request->putParameters(['key' => 'value']);
-        $_SERVER['HTTP_AJAX'] = true;
-        $call = new \PhoenixPhp\Pages\Test\InvalidAjaxAction();
+        $call = new \PhoenixPhp\Pages\Test\InvalidAjax();
         $content = $call->render();
         $this->assertEquals('SUCCESS', $content);
     }
 
     /**
-     * @runInSeparateProcess
      * @covers ::render
      * @covers ::validateParameters
      */
@@ -54,9 +51,8 @@ class BaseAjaxTest extends TestCase
         $request = Request::getInstance($stream);
         $request->deleteAllParameters();
         $request->putParameters(['key' => 'value']);
-        $_SERVER['HTTP_AJAX'] = true;
         putenv('DEVELOPER="true"');
-        $call = new \PhoenixPhp\Pages\Test\MissingValidationAjaxAction();
+        $call = new \PhoenixPhp\Pages\Test\MissingValidationAjax();
         $content = $call->render();
         $this->assertEquals('OK', $content);
     }

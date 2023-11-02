@@ -4,8 +4,13 @@ namespace PhoenixPhp\Pages\Test;
 
 use PhoenixPhp\Core\BaseAjax;
 
-class MissingValidationAjaxAction extends BaseAjax
+class InvalidAjax extends BaseAjax
 {
+
+    public function validateKey(): bool
+    {
+        return false;
+    }
 
     public function run(): ?string
     {
