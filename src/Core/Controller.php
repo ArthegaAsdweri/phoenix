@@ -101,7 +101,7 @@ class Controller
 
         $this->setCalledPage($page);
         $this->setPage($page);
-        $this->setAction($action);
+        $this->setAction(StringConversion::toCamelCase($action));
         $this->setArgument($argument);
     }
 

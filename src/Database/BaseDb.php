@@ -653,6 +653,7 @@ class BaseDb
                 $value = var_export($value, true);
             }
             $queryString = str_replace(':' . $parameter['placeholder'] . ' ', $value . ' ', $queryString);
+            $queryString = str_replace(':' . $parameter['placeholder'] . ')', $value . ')', $queryString);
         }
         die($queryString);
     }
