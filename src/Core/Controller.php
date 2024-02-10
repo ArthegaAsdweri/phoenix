@@ -293,7 +293,6 @@ class Controller
     {
         if ($this->checkFile() === true) {
             $path = $this->retrieveDir();
-            $globalPath = $this->retrieveDir(true);
 
             $action = StringConversion::toCamelCase($this->getAction());
 

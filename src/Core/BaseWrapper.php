@@ -64,6 +64,13 @@ abstract class BaseWrapper extends BasePage
         $this->generateTemplate();
         $wrapperContent = $this->parseContent();
 
+
+        $this->registerVueMixin('core', true);
+        if (defined('PHPHP_AXIOS') && PHPHP_AXIOS === true) {
+            $axiosJs = new Parser(__DIR__ . '/../IndexSub.html', 'AXIOS_JS');
+            $tplIndex->parse('AXIOS_JS', $axiosJs->retrieveTemplate());
+        }
+
         //loop through the vue components
         $this->parseVueComponents();
         $components = $this->getVueComponents();
@@ -145,7 +152,7 @@ abstract class BaseWrapper extends BasePage
         //render JS
         if (count($assetHandler->getJsFiles()) > 0) {
             $jsString = $assetHandler->renderJs();
-            $tplIndex->parse('INTERNAL_JS', '<script src="/cache/' . $jsString . '.js"></script>');
+            $tplIndex->parse('INTERNAL_JS', '<script src="/src/Resources/Cache/' . $jsString . '.js"></script>');
         }
 
         //render vue dev mode
@@ -163,11 +170,20 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse('VUETIFY_JS', $vuetifyJs->retrieveTemplate());
             $tplIndex->parse('VUETIFY_CSS', $vuetifyCss->retrieveTemplate());
 
-            $vuetifyTheme = '';
+            $vuetifyConfig = [];
             if (defined('PHPHP_VUETIFY_THEME')) {
-                $vuetifyTheme = '
+                $vuetifyConfig[] = '
                     theme: {
                         ' . PHPHP_VUETIFY_THEME . ':true
+                    }
+                ';
+            }
+
+            if (defined('PHPHP_VUETIFY_LOCALE')) {
+                $vuetifyConfig[] = '                    
+                    lang: {
+                      locales: { ' . PHPHP_VUETIFY_LOCALE . ': vuetify_' . PHPHP_VUETIFY_LOCALE . ' },
+                      current: "' . PHPHP_VUETIFY_LOCALE . '",
                     }
                 ';
             }
@@ -175,14 +191,9 @@ abstract class BaseWrapper extends BasePage
             $tplIndex->parse(
                 'VUETIFY_INIT',
                 '
-                , vuetify: new Vuetify({' . $vuetifyTheme . '})
+                , vuetify: new Vuetify({' . implode(',', $vuetifyConfig) . '})
             '
             );
-        }
-
-        if (defined('PHPHP_AXIOS') && PHPHP_AXIOS === true) {
-            $axiosJs = new Parser(__DIR__ . '/../IndexSub.html', 'AXIOS_JS');
-            $tplIndex->parse('AXIOS_JS', $axiosJs->retrieveTemplate());
         }
 
         $language = 'en-EN';

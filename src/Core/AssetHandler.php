@@ -61,7 +61,7 @@ class AssetHandler
             }
             $filePath = $path;
         }
-        
+
         if ($prepend === true) {
             array_unshift($cssFiles, $filePath);
         } else {
@@ -85,11 +85,15 @@ class AssetHandler
             return;
         }
 
-        if (!stream_resolve_include_path($path)) {
-            throw new Exception('The file "' . $path . '" does not exist.');
+        $filePath = 'Resources/Js/' . $path;
+        if (!stream_resolve_include_path($filePath)) {
+            if (!stream_resolve_include_path($path)) {
+                throw new Exception('The file "' . $filePath . '" does not exist. Same applies to "' . $path . '".');
+            }
+            $filePath = $path;
         }
 
-        $jsFiles[] = $path;
+        $jsFiles[] = $filePath;
         $this->setJsFiles($jsFiles);
     }
 
@@ -202,11 +206,16 @@ class AssetHandler
             $jsContent .= file_get_contents(stream_resolve_include_path($jsFile));
         }
         $md5String = md5($jsFileString);
-
-        #$fp = fopen('/srv/www/media/cache/'.$md5String.'.js', 'w');
-        #fwrite($fp, $jsContent);
-        #fclose($fp);
-
+        
+        $projectPath = $this->retrieveDirectoryPath();
+        $projectPath = str_replace('/app/vendor/phpunit/phpunit', '', $projectPath);
+        $fp = fopen($projectPath . '/src/Resources/Cache/' . $md5String . '.js', 'w');
+        if ($fp) {
+            //@codeCoverageIgnoreStart
+            fwrite($fp, $jsContent);
+            fclose($fp);
+            //@codeCoverageIgnoreEnd
+        }
         return $md5String;
     }
 

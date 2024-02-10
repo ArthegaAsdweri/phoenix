@@ -3,6 +3,7 @@
 namespace PhoenixPhp\Core;
 
 use PhoenixPhp\Utils\JsonEncoder;
+use PhoenixPhp\Utils\StringConversion;
 
 /**
  * base class for every page
@@ -152,7 +153,7 @@ abstract class BasePage
      * @return Component|null component or null if not valid
      * @throws Exception
      */
-    final protected function registerVueMixin(string $componentName, bool $global = false): ?Component
+    final function registerVueMixin(string $componentName, bool $global = false): ?Component
     {
         $mixin = ($global) ? 'GLOBAL' : 'LOCAL';
         return $this->registerVueComponent($componentName, true, $mixin);
@@ -165,7 +166,7 @@ abstract class BasePage
      * @return Component|null component or null if not valid
      * @throws Exception
      */
-    final protected function registerMainMixin(string $componentName): ?Component
+    final function registerMainMixin(string $componentName): ?Component
     {
         return $this->registerVueComponent($componentName, true, 'VUE');
     }
@@ -177,7 +178,7 @@ abstract class BasePage
      * @param bool $prepend true: prepend the file to the list, false: append it to the list
      * @throws Exception
      */
-    final protected function registerCss(string $path, bool $prepend = false): void
+    final function registerCss(string $path, bool $prepend = false): void
     {
         $assets = AssetHandler::getInstance();
         $assets->registerCss($path, $prepend);
@@ -189,7 +190,7 @@ abstract class BasePage
      * @param string $path path to the file
      * @throws Exception
      */
-    final protected function registerJs(string $path): void
+    final function registerJs(string $path): void
     {
         $assets = AssetHandler::getInstance();
         $assets->registerJs($path);
@@ -200,7 +201,7 @@ abstract class BasePage
      *
      * @param string $path path to the file
      */
-    final protected function registerExternalJs(string $path): void
+    final function registerExternalJs(string $path): void
     {
         $assets = AssetHandler::getInstance();
         $assets->registerExternalJs($path);
@@ -211,7 +212,7 @@ abstract class BasePage
      *
      * @param string $code the code that needs to run
      */
-    final protected function registerInlineJs(string $code): void
+    final function registerInlineJs(string $code): void
     {
         $assets = AssetHandler::getInstance();
         $assets->registerInlineJs($code);
@@ -239,12 +240,12 @@ abstract class BasePage
      * @param bool $global true: global module, false: local module inside the project
      * @return BaseModule called module
      */
-    final protected function callModule(
+    final function callModule(
         string $moduleName,
         string $action = 'default',
         bool $global = false
     ): BaseModule {
-        $moduleName = ucfirst(strtolower($moduleName));
+        $moduleName = ucfirst(StringConversion::toCamelCase(strtolower(StringConversion::toSnakeCase($moduleName))));
         $ucAction = ucfirst($action);
         $className = 'PhoenixPhp\Modules\\' . $moduleName . '\\' . $ucAction . 'Action';
 
@@ -259,7 +260,7 @@ abstract class BasePage
     /**
      * wrapper method for global modules
      */
-    final protected function callGlobalModule(string $moduleName, string $action = "default"): BaseModule
+    final function callGlobalModule(string $moduleName, string $action = "default"): BaseModule
     {
         return $this->callModule($moduleName, $action, true);
     }
@@ -271,7 +272,7 @@ abstract class BasePage
      * @param BaseModule $module the module instance that needs to be rendered
      * @return string the rendered module content
      */
-    final protected function renderModule(BaseModule $module): string
+    final function renderModule(BaseModule $module): string
     {
         $moduleArray = $module->render();
 
@@ -283,6 +284,11 @@ abstract class BasePage
         }
 
         return $moduleArray['moduleContent'];
+    }
+    
+    final function forward(string $to) {
+        header('location: '.$to);
+        die();
     }
 
     /**

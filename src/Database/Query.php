@@ -165,32 +165,26 @@ class Query
     private function createSelectString(): string
     {
         $originalFields = $this->getSelectFields();
-        $aggregateArray = ['GROUP_CONCAT', 'COUNT', 'MAX', 'SUM'];
-
         $selectFields = [];
-        foreach ($originalFields as $selectField) {
-            $aggregateFound = false;
-            foreach ($aggregateArray as $aggregate) {
-                if (stristr($selectField, $aggregate.'(')) {
-                    $aggregateFound = true;
-                    $tmpSelectField = str_replace($aggregateArray, '', $selectField);
-                    $tmpSelectField = str_replace(['(', ')'], '', $tmpSelectField);
-                    $selectFields[] = $aggregate . '(`' . $tmpSelectField . '`) AS `' . $this->createSelectAlias(
-                            $tmpSelectField
-                        ) . '`';
-                }
-            }
 
-            if (!$aggregateFound) {
-                $selectFields[] = $selectField;
+        foreach ($originalFields as $selectField) {
+            $replacement = function ($matches) {
+                $innerField = trim($matches[1], '`');
+                return '(`' . $innerField . '`)';
+            };
+
+            $selectField = preg_replace_callback('/\(([^()]*)\)/', $replacement, $selectField);
+
+            $aliasString = '';
+            if(stristr($selectField, '_') || stristr($selectField, '(')) {
+                $aliasString = ' AS `' . $this->createSelectAlias($selectField) . '`';
             }
+            $selectFields[] = $selectField . $aliasString;
         }
+
         $finalFields = implode(', ', $selectFields);
 
-        $distinctAdd = '';
-        if ($this->getDistinct() === true) {
-            $distinctAdd = 'DISTINCT ';
-        }
+        $distinctAdd = $this->getDistinct() ? 'DISTINCT ' : '';
 
         return 'SELECT ' . $distinctAdd . $finalFields;
     }
@@ -202,10 +196,8 @@ class Query
      *
      * @return string                Der quotierte Parameter im Format "`table_name`.`field_name`"
      */
-    private
-    function createSelectField(
-        string $selectField
-    ): string {
+    private function createSelectField(string $selectField): string
+    {
         $selectParts = explode('.', $selectField);
 
         $quotedFields = [];
@@ -226,10 +218,15 @@ class Query
      *
      * @return string                der neu generierte Alias
      */
-    private
-    function createSelectAlias(
-        string $selectField
-    ): string {
+    private function createSelectAlias(string $selectField): string
+    {
+        $matches = [];
+        $match = preg_match('/(.*?)\(.*`(.*)`/', $selectField, $matches);
+
+        if ($match) {
+            $selectField = strtolower($matches[1]) . ' ' . $matches[2];
+        }
+
         $aliasString = str_replace(['.', '_'], ' ', $selectField);
         $aliasString = ucwords($aliasString);
         $aliasString = str_replace(' ', '', $aliasString);
@@ -241,8 +238,7 @@ class Query
      *
      * @return string $joinString    Der fertige JOIN-String für das Query
      */
-    private
-    function createJoinString(): string
+    private function createJoinString(): string
     {
         $joinArray = $this->getJoins();
         $joinString = '';
@@ -308,8 +304,7 @@ class Query
      *
      * @return string $orderString    Der fertige ORDER BY-String für das Query
      */
-    private
-    function createOrderString(): string
+    private function createOrderString(): string
     {
         $orderFields = $this->getOrderFields();
         $orderString = '';
@@ -330,8 +325,7 @@ class Query
      *
      * @return string $groupString    Der fertige GROUP BY-String für das Query
      */
-    private
-    function createGroupString(): string
+    private function createGroupString(): string
     {
         $groupFields = $this->getGroupFields();
         $groupString = '';
@@ -346,8 +340,7 @@ class Query
      *
      * @return string $limitString    der fertige LIMIT-String für das Query
      */
-    private
-    function createLimitString(): string
+    private function createLimitString(): string
     {
         $limitString = '';
         if ($this->getLimit() !== null) {
@@ -364,10 +357,8 @@ class Query
      *
      * @param array $keys Ein Array aus Feldern, die selektiert werden sollen
      */
-    public
-    function select(
-        array $keys
-    ): void {
+    public function select(array $keys): void
+    {
         if (count($keys) === 0) {
             $error = 'Das Array ' . print_r(
                     $keys,
@@ -385,10 +376,8 @@ class Query
      *
      * @param array $keys Ein Array aus Feldern, die selektiert werden sollen
      */
-    public
-    function selectDistinct(
-        array $keys
-    ): void {
+    public function selectDistinct(array $keys): void
+    {
         $this->setDistinct(true);
         $this->select($keys);
     }
@@ -396,10 +385,8 @@ class Query
     /**
      * @param string $tableName Der Name der Tabelle, von der selektiert werden soll
      */
-    public
-    function from(
-        string $tableName
-    ): void {
+    public function from(string $tableName): void
+    {
         $this->setFrom($tableName);
     }
 
@@ -416,8 +403,7 @@ class Query
      * @param ?self $subQuery Ein Sub-Query
      * @param ?string $joinDb Die DB, über die die Tabelle verknüpft wird
      */
-    private
-    function addJoin(
+    private function addJoin(
         string $joinType,
         string $joinTable,
         string $joinField,
@@ -462,12 +448,8 @@ class Query
      * @param string $linkField Das Feld der Tabelle, das mit der zu joinenden Tabelle verknüpft wird
      * @param string $joinType Der Typ des Joins
      */
-    public
-    function join(
-        string $joinField,
-        string $linkField,
-        $joinType = 'INNER'
-    ): void {
+    public function join(string $joinField, string $linkField, $joinType = 'INNER'): void
+    {
         $dotCount = substr_count($joinField, '.');
         $tmpTable = explode('.', $joinField);
         $tableName = $tmpTable[0];
@@ -496,12 +478,8 @@ class Query
      * @param string $linkField Das Feld der Tabelle, das mit der zu joinenden Tabelle verknüpft wird
      * @param string $joinType Der Typ des Joins
      */
-    public
-    function andJoin(
-        string $joinField,
-        string $linkField,
-        $joinType = 'INNER'
-    ): void {
+    public function andJoin(string $joinField, string $linkField, $joinType = 'INNER'): void
+    {
         $dotCount = substr_count($joinField, '.');
         $tmpTable = explode('.', $joinField);
         $tableName = $tmpTable[0];
@@ -530,11 +508,8 @@ class Query
      * @param string $joinField Das Feld der "zu joinenden" Tabelle, über das verknüpft wird
      * @param string $linkField Das Feld der Tabelle, das mit der zu joinenden Tabelle verknüpft wird
      */
-    public
-    function leftJoin(
-        string $joinField,
-        string $linkField
-    ): void {
+    public function leftJoin(string $joinField, string $linkField): void
+    {
         $this->join($joinField, $linkField, 'LEFT');
     }
 
@@ -544,11 +519,8 @@ class Query
      * @param string $joinField Die Tabelle, zu der der Join aufgebaut wird
      * @param string $linkField Das Feld der Tabelle, das mit der zu joinenden Tabelle verknüpft wird
      */
-    public
-    function andLeftJoin(
-        string $joinField,
-        string $linkField
-    ): void {
+    public function andLeftJoin(string $joinField, string $linkField): void
+    {
         $this->andJoin($joinField, $linkField, 'LEFT');
     }
 
@@ -559,13 +531,8 @@ class Query
      * @param string $joinField Das Feld, über das das SubQuery verknüpft werden soll
      * @param string $linkField Das Feld der Tabelle, das mit der zu joinenden Tabelle verknüpft wird
      */
-    public
-    function leftJoinSubQuery(
-        self $subQuery,
-        string $joinField,
-        string $linkField,
-        $aliasConcat = ''
-    ): void {
+    public function leftJoinSubQuery(self $subQuery, string $joinField, string $linkField, $aliasConcat = ''): void
+    {
         $tmpTable = explode('.', $joinField);
         $joinField = $tmpTable[1];
         $this->addJoin(
@@ -585,12 +552,8 @@ class Query
      * @param string $joinField Das Feld, über das das SubQuery verknüpft werden soll
      * @param string $linkField Das Feld der Tabelle, das mit der zu joinenden Tabelle verknüpft wird
      */
-    public
-    function andLeftJoinSubQuery(
-        self $subQuery,
-        string $joinField,
-        string $linkField
-    ): void {
+    public function andLeftJoinSubQuery(self $subQuery, string $joinField, string $linkField): void
+    {
         $tmpTable = explode('.', $joinField);
         $joinField = $tmpTable[1];
         $this->addJoin('LEFT', $subQuery->getFrom() . '_sub_query', $joinField, $linkField, 'AND', $subQuery);
@@ -601,10 +564,8 @@ class Query
      *
      * @param string $identifier Die Tabelle, auf die das Select abzielt und gleichzeitig Schlüssel im Array
      */
-    public
-    function &subQuery(
-        string $tableName
-    ): self {
+    public function &subQuery(string $tableName): self
+    {
         $subQueries = $this->getSubQueries();
         $subQuery = new self();
         $subQuery->setFrom($tableName);
@@ -656,11 +617,8 @@ class Query
      * @param string $field Das Feld, nach dem sortiert werden soll
      * @param string $direction Die Sortierrichtung
      */
-    public
-    function orderBy(
-        string $field,
-        string $direction = 'ASC'
-    ): void {
+    public function orderBy(string $field, string $direction = 'ASC'): void
+    {
         if (!in_array($direction, self::VALID_ORDER_DIRECTIONS)) {
             $valid = implode(' oder ', self::VALID_ORDER_DIRECTIONS);
             $error = 'Die Sortierrichtung ' . $direction . ' ist ungültig. Muss ' . $valid . ' sein.';
@@ -686,10 +644,8 @@ class Query
      *
      * @param array $groupFields Die Felder, nach denen gruppiert wird
      */
-    public
-    function groupBy(
-        array $groupFields
-    ): void {
+    public function groupBy(array $groupFields): void
+    {
         $this->setGroupFields($groupFields);
     }
 
@@ -698,10 +654,8 @@ class Query
      *
      * @param int $limit Die Anzahl an Datensätzen, die zurück geliefert werden soll
      */
-    public
-    function limit(
-        int $limit
-    ): void {
+    public function limit(int $limit): void
+    {
         $this->setLimit($limit);
     }
 
@@ -710,8 +664,7 @@ class Query
      *
      * @return array $executionArray    Das Array der Parameter mit entsprechendem PDO Type
      */
-    public
-    function createExecutionParameters(): array
+    public function createExecutionParameters(): array
     {
         $keys = $this->getWhere();
         $executionArray = [];
@@ -760,10 +713,8 @@ class Query
      *
      * @return int            Die id des Datentyps für PDO
      */
-    public
-    function retrieveParameterType(
-        $value
-    ): int {
+    public function retrieveParameterType($value): int
+    {
         $usedValue = $value;
         if (is_array($value)) {
             if (!isset($value[1])) {

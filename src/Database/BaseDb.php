@@ -420,10 +420,10 @@ class BaseDb
     /**
      * FIXME
      */
-    public function delete(): bool
+    public function delete(Query $query): bool
     {
-        $whereString = $this->query->createWhereString();
-        $queryString = 'DELETE FROM ' . $this->query->getFrom() . ' ' . $whereString;
+        $whereString = $query->createWhereString();
+        $queryString = 'DELETE FROM ' . $query->getFrom() . ' ' . $whereString;
 
         //Vorbereiten
         try {
@@ -434,7 +434,7 @@ class BaseDb
             return false;
         }
 
-        $execArray = $this->createExecutionParameters();
+        $execArray = $query->createExecutionParameters();
 
         //Datenbank hat das Query vorbereitet - nun die Parameter setzen
         if ($statement !== false) {
