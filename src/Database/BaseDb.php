@@ -261,7 +261,7 @@ class BaseDb
             return null;
         }
         $execArray = $query->createExecutionParameters();
-
+        
         //Datenbank hat das Query vorbereitet - nun die Parameter setzen
         if ($statement !== false) {
             foreach ($execArray as $parameter) {
@@ -272,7 +272,9 @@ class BaseDb
                             $tmp = implode(',', $value);
                             $value = $tmp;
                         } else {
-                            $value = '"' . $value . '"';
+                            if (!$parameter['usedQuery'] === true) {
+                                $value = '"' . $value . '"';
+                            }
                         }
                     } else {
                         $value = var_export($value, true);
@@ -629,7 +631,7 @@ class BaseDb
      */
     private function generateTargetClassName(string $tableName): string
     {
-        $className = get_called_class().'\\'.ucfirst(StringConversion::toCamelCase($tableName));
+        $className = get_called_class() . '\\' . ucfirst(StringConversion::toCamelCase($tableName));
         return $className;
     }
 
@@ -638,7 +640,8 @@ class BaseDb
      */
     public function printQuery($query): void
     {
-        $queryString = $query->createQueryString();
+        $query->setPretty(true);
+        $queryString = $query->createQueryString(true);
         $execArray = $query->createExecutionParameters();
         foreach ($execArray as $parameter) {
             $value = $parameter['value'];
@@ -647,7 +650,9 @@ class BaseDb
                     $tmp = implode(',', $value);
                     $value = $tmp;
                 } else {
-                    $value = '"' . $value . '"';
+                    if (!$parameter['usedQuery'] === true) {
+                        $value = '"' . $value . '"';
+                    }
                 }
             } else {
                 $value = var_export($value, true);

@@ -3,6 +3,7 @@
 namespace PhoenixPhp\Database;
 
 use PDO;
+use PhoenixPhp\Core\Exception;
 use PhoenixPhp\Core\Logger;
 
 /**
@@ -20,7 +21,8 @@ class Query
     //---- MEMBER VARIABLEN
 
     private array $selectFields = ['*'];
-    private ?string $from = null;
+    private null|string|Query|array $from = null;
+    private ?string $fromAlias = null;
     private ?array $joins = null;
     private ?array $where = null;
     private ?array $subQueries = null;
@@ -29,6 +31,7 @@ class Query
     private ?int $limit = null;
     private bool $distinct = false;
     private int $whereCounter = 0;
+    private bool $isPretty = false;
 
 
     //---- SETTER UND GETTER
@@ -40,9 +43,14 @@ class Query
         $this->selectFields = $val;
     }
 
-    public function setFrom(?string $val): void
+    public function setFrom(null|string|Query|array $val): void
     {
         $this->from = $val;
+    }
+
+    public function setFromAlias(?string $val): void
+    {
+        $this->fromAlias = $val;
     }
 
     public function setJoins(?array $val): void
@@ -85,6 +93,11 @@ class Query
         $this->whereCounter = $val;
     }
 
+    public function setPretty(bool $val): void
+    {
+        $this->isPretty = true;
+    }
+
     //---- GETTER
 
     public function getSelectFields(): array
@@ -92,9 +105,14 @@ class Query
         return $this->selectFields;
     }
 
-    public function getFrom(): ?string
+    public function getFrom(): null|string|Query|array
     {
         return $this->from;
+    }
+
+    public function getFromAlias(): ?string
+    {
+        return $this->fromAlias;
     }
 
     public function getJoins(): ?array
@@ -137,6 +155,11 @@ class Query
         return $this->whereCounter;
     }
 
+    private function isPretty(): bool
+    {
+        return $this->isPretty;
+    }
+
 
     //---- ALLGEMEINE FUNKTIONEN
 
@@ -147,14 +170,38 @@ class Query
      */
     public function createQueryString(): string
     {
-        $selectString = $this->createSelectString();
+        $p = ' ';
+        if ($this->isPretty()) {
+            $p = PHP_EOL;
+        }
+        $queryString = $this->createSelectString();
+        $queryString .= $p . $this->createFromString();
+
         $joinString = $this->createJoinString();
+        if ($joinString !== '') {
+            $queryString .= $joinString;
+        }
+
         $whereString = $this->createWhereString();
-        $orderString = $this->createOrderString();
-        $limitString = $this->createLimitString();
+        if ($whereString !== '') {
+            $queryString .= $p . $whereString;
+        }
+
         $groupString = $this->createGroupString();
-        $from = $this->createSelectField($this->getFrom());
-        return $selectString . ' FROM ' . $from . ' ' . $joinString . ' ' . $whereString . ' ' . $groupString . ' ' . $orderString . ' ' . $limitString;
+        if ($groupString !== '') {
+            $queryString .= $p . $groupString;
+        }
+
+        $orderString = $this->createOrderString();
+        if ($orderString !== '') {
+            $queryString .= $p . $orderString;
+        }
+
+        $limitString = $this->createLimitString();
+        if ($limitString !== '') {
+            $queryString .= $p . $limitString;
+        }
+        return $queryString . $p;
     }
 
     /**
@@ -168,16 +215,24 @@ class Query
         $selectFields = [];
 
         foreach ($originalFields as $selectField) {
-            $replacement = function ($matches) {
+            $selectField = preg_replace_callback('/\(([^()]*)\)/', function ($matches) {
+                if (stristr($matches[1], '.')) {
+                    $tmpArray = explode('.', $matches[1]);
+                    $matches[1] = '`' . implode('`.`', $tmpArray) . '`';
+                }
                 $innerField = trim($matches[1], '`');
                 return '(`' . $innerField . '`)';
-            };
-
-            $selectField = preg_replace_callback('/\(([^()]*)\)/', $replacement, $selectField);
+            }, $selectField);
 
             $aliasString = '';
-            if(stristr($selectField, '_') || stristr($selectField, '(')) {
-                $aliasString = ' AS `' . $this->createSelectAlias($selectField) . '`';
+            if (stristr($selectField, ' AS ')) {
+                $tmpArray = explode(' AS ', $selectField);
+                $selectField = $tmpArray[0];
+                $aliasString = ' AS `' . $tmpArray[1] . '`';
+            } else {
+                if (stristr($selectField, '_') || stristr($selectField, '(')) {
+                    $aliasString = ' AS `' . $this->createSelectAlias($selectField) . '`';
+                }
             }
             $selectFields[] = $selectField . $aliasString;
         }
@@ -185,8 +240,46 @@ class Query
         $finalFields = implode(', ', $selectFields);
 
         $distinctAdd = $this->getDistinct() ? 'DISTINCT ' : '';
-
         return 'SELECT ' . $distinctAdd . $finalFields;
+    }
+
+    /**
+     * Diese Methode erzeugt den FROM-String für das Query
+     *
+     * @return string Der fertige FROM-String für das Query
+     */
+    private function createFromString(): string
+    {
+        $p = ' ';
+        if ($this->isPretty()) {
+            $p = PHP_EOL;
+        }
+
+        $from = $this->getFrom();
+        if (is_a($from, 'PhoenixPhp\Database\Query')) {
+            if ($this->isPretty()) {
+                $from->setPretty(true);
+            }
+            $fromString = $from->createQueryString();
+        } elseif (is_array($from)) {
+            $subString = '';
+            foreach ($from as $clause) {
+                if (is_a($clause, 'PhoenixPhp\Database\Query')) {
+                    if ($this->isPretty()) {
+                        $clause->setPretty(true);
+                    }
+                    $subString .= $clause->createQueryString() . ' ';
+                } else {
+                    $subString .= $clause . ' ';
+                }
+            }
+            if ($this->getFromAlias() !== null) {
+                $fromString = '(' . $p . $subString . ') AS ' . $this->getFromAlias();
+            }
+        } else {
+            $fromString = $this->createSelectField($this->getFrom());
+        }
+        return 'FROM ' . $fromString;
     }
 
     /**
@@ -220,6 +313,8 @@ class Query
      */
     private function createSelectAlias(string $selectField): string
     {
+        $selectField = str_replace('DISTINCT', '', $selectField);
+
         $matches = [];
         $match = preg_match('/(.*?)\(.*`(.*)`/', $selectField, $matches);
 
@@ -255,18 +350,36 @@ class Query
                     $joinDb = '`' . $joinProperties['DB'] . '`.';
                 }
 
+                $p = ' ';
+                if ($this->isPretty()) {
+                    $p = PHP_EOL;
+                }
+
                 $queryString = '';
                 if (isset($joinQuery)) {
                     $joinTableJoin = $this->createSelectAlias($joinTable);
                     $queryString = '(' . $joinQuery->createQueryString() . ')';
                 }
 
-                $joinString .= $joinType . ' JOIN ' . $queryString . ' ' . $joinDb . '`' . $joinTableJoin . '` ON (';
+                $joinString .= $p . $joinType . ' JOIN ' . $queryString . ' ' . $joinDb . '`' . $joinTableJoin . '` ON (';
                 foreach ($joinConditions as $joinParameters) {
+                    $joinTable = $joinParameters['joinTable'];
                     $joinConnector = ($joinParameters['joinConnector'] !== null) ? ' ' . $joinParameters['joinConnector'] . ' ' : '';
                     $joinKeys = $joinParameters['joinKeys'];
-                    $joinData = $this->createSelectField($joinKeys[1]);
-                    $joinString .= $joinDb . $joinConnector . '`' . $joinTableJoin . '`.`' . $joinKeys[0] . '` = ' . $joinData;
+
+                    if ($joinKeys[0] === 'none') {
+                        $joinString .= $joinDb . $joinConnector . $joinKeys[1];
+                    } else {
+                        if (is_array($joinKeys[1])) {
+                            $arguments = $joinKeys[1];
+                            if ($arguments[0] === 'BETWEEN') {
+                                $joinString .= $joinDb . $joinConnector . '`' . $joinTable . '`.`' . $joinKeys[0] . '` BETWEEN ' . $arguments[1] . ' AND ' . $arguments[2].'';
+                            }
+                        } else {
+                            $joinData = $this->createSelectField($joinKeys[1]);
+                            $joinString .= $joinDb . $joinConnector . '`' . $joinTable . '`.`' . $joinKeys[0] . '` = ' . $joinData;
+                        }
+                    }
                 }
                 $joinString .= ') ';
             }
@@ -283,6 +396,7 @@ class Query
     {
         $keys = $this->getWhere();
         $whereString = '';
+        
         if ($keys !== null) {
             $whereArray = [];
             foreach ($keys as $key => $value) {
@@ -383,11 +497,13 @@ class Query
     }
 
     /**
-     * @param string $tableName Der Name der Tabelle, von der selektiert werden soll
+     * @param string|Query|array $value name of the table or Query object, or array of multiple queries
+     * @param null|string $as the alias of the result in case of complex queries
      */
-    public function from(string $tableName): void
+    public function from(string|Query|array $value, ?string $as = null): void
     {
-        $this->setFrom($tableName);
+        $this->setFrom($value);
+        $this->setFromAlias($as);
     }
 
     /**
@@ -407,7 +523,7 @@ class Query
         string $joinType,
         string $joinTable,
         string $joinField,
-        string $linkField,
+        string|array $linkField,
         ?string $joinConnector = null,
         ?self $subQuery = null,
         ?string $joinDb = null
@@ -415,7 +531,7 @@ class Query
         $joins = $this->getJoins();
 
         //neu anlegen
-        if (!isset($joins[$joinTable])) {
+        if (!isset($joins[$joinTable]) && $joinConnector === null) {
             $joins[$joinTable] = [
                 'TYPE' => $joinType,
                 'DB' => $joinDb,
@@ -431,12 +547,16 @@ class Query
             ];
         } //Bedingungen hinzufügen
         else {
-            $joins[$joinTable]['CONDITIONS'][] = [
+            $arrayKeys = array_keys($joins);
+            $lastKey = end($arrayKeys);
+            $lastJoin = end($joins);
+            $lastJoin['CONDITIONS'][] = [
                 'joinDb' => $joinDb,
                 'joinTable' => $joinTable,
                 'joinKeys' => [$joinField, $linkField],
                 'joinConnector' => $joinConnector
             ];
+            $joins[$lastKey] = $lastJoin;
         }
         $this->setJoins($joins);
     }
@@ -451,9 +571,15 @@ class Query
     public function join(string $joinField, string $linkField, $joinType = 'INNER'): void
     {
         $dotCount = substr_count($joinField, '.');
-        $tmpTable = explode('.', $joinField);
-        $tableName = $tmpTable[0];
-        $joinField = $tmpTable[1];
+
+        if ($linkField !== '1=1') {
+            $tmpTable = explode('.', $joinField);
+            $tableName = $tmpTable[0];
+            $joinField = $tmpTable[1];
+        } else {
+            $tableName = $joinField;
+            $joinField = 'none';
+        }
         $joinDbName = null;
         if ($dotCount === 2) {
             $joinDbName = $tmpTable[0];
@@ -478,7 +604,7 @@ class Query
      * @param string $linkField Das Feld der Tabelle, das mit der zu joinenden Tabelle verknüpft wird
      * @param string $joinType Der Typ des Joins
      */
-    public function andJoin(string $joinField, string $linkField, $joinType = 'INNER'): void
+    public function andJoin(string $joinField, string|array $linkField, $joinType = 'INNER'): void
     {
         $dotCount = substr_count($joinField, '.');
         $tmpTable = explode('.', $joinField);
@@ -492,12 +618,15 @@ class Query
         }
 
         $joins = $this->getJoins();
+
+        /*
         if (!isset($joins[$tableName])) {
             $error = 'Es kann keine zusätzliche Bedingung für ' . $tableName . ' generiert werden. Erste Bedingung fehlt (join). Ich ignoriere die Anweisung.';
             $logger = new Logger();
             $logger->warning($error);
             return;
         }
+        */
 
         $this->addJoin($joinType, $tableName, $joinField, $linkField, 'AND', null, $joinDbName);
     }
@@ -514,12 +643,20 @@ class Query
     }
 
     /**
+     * TODO
+     */
+    public function forceLeftJoin(string $joinField): void
+    {
+        $this->join($joinField, '1=1', 'LEFT');
+    }
+
+    /**
      * Diese Methode erweitert den bestehenden Left (Outer) Join um eine AND Bedingung
      *
      * @param string $joinField Die Tabelle, zu der der Join aufgebaut wird
      * @param string $linkField Das Feld der Tabelle, das mit der zu joinenden Tabelle verknüpft wird
      */
-    public function andLeftJoin(string $joinField, string $linkField): void
+    public function andLeftJoin(string $joinField, string|array $linkField): void
     {
         $this->andJoin($joinField, $linkField, 'LEFT');
     }
@@ -727,28 +864,20 @@ class Query
         $type = gettype($usedValue);
         if ($type === 'boolean') {
             return PDO::PARAM_BOOL;
+        } elseif ($type === 'integer') {
+            return PDO::PARAM_INT;
+        } elseif ($type === 'double') {
+            return PDO::PARAM_STR;
+        } elseif ($type === 'string') {
+            return PDO::PARAM_STR;
+        } elseif ($type === 'NULL') {
+            return PDO::PARAM_NULL;
         } else {
-            if ($type === 'integer') {
-                return PDO::PARAM_INT;
-            } else {
-                if ($type === 'double') {
-                    return PDO::PARAM_STR;
-                } else {
-                    if ($type === 'string') {
-                        return PDO::PARAM_STR;
-                    } else {
-                        if ($type === 'NULL') {
-                            return PDO::PARAM_NULL;
-                        } else {
-                            $error = 'Der Parameter ' . print_r(
-                                    $usedValue,
-                                    true
-                                ) . ' hat einen ungültigen Typ: ' . $type;
-                            throw new Exception($error);
-                        }
-                    }
-                }
-            }
+            $error = 'Der Parameter ' . print_r(
+                    $usedValue,
+                    true
+                ) . ' hat einen ungültigen Typ: ' . $type;
+            throw new Exception($error);
         }
     }
 }

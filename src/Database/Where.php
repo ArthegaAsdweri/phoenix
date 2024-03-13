@@ -8,12 +8,13 @@ use PhoenixPhp\Core\Exception;
 /**
  * Die Wrapper-Klasse für alle Where-Clauses
  */
-class Where {
+class Where
+{
 
     //---- MEMBER VARIABLEN
 
-    private int   $index    = 0;
-    private array $clauses  = [];
+    private int $index = 0;
+    private array $clauses = [];
     private array $keycount = [];
 
 
@@ -24,11 +25,12 @@ class Where {
         $this->index = $val;
     }
 
-    private function setClauses(array $val) : void {
+    private function setClauses(array $val): void
+    {
         $this->clauses = $val;
     }
 
-    private function setKeyCount(array $val) : void
+    private function setKeyCount(array $val): void
     {
         $this->keycount = $val;
     }
@@ -41,7 +43,8 @@ class Where {
         return $this->index;
     }
 
-    public function getClauses() : array {
+    public function getClauses(): array
+    {
         return $this->clauses;
     }
 
@@ -56,33 +59,34 @@ class Where {
     /**
      * Diese Funktion erzeugt eine Where-Klausel
      *
-     * @param int $index     der Index der Bedingung
-     * @param string $key    Der Key
+     * @param int $index der Index der Bedingung
+     * @param string $key Der Key
      * @param $val
      */
-    public function addClause(int $index, string $key, $val) : void {
+    public function addClause(int $index, string $key, $val): void
+    {
         $this->addKeyCount($key);
         $this->setIndex($index);
         $clauses = $this->getClauses();
         $clauses[] = [
             'connector' => null,
-            'key'       => $key,
-            'value'     => $val,
-            'keyCount'  => $this->getKeycount()[$key]
+            'key' => $key,
+            'value' => $val,
+            'keyCount' => $this->getKeycount()[$key]
         ];
         $this->setClauses($clauses);
     }
 
 
-    public function or(string $key, $value) : void
+    public function or(string $key, $value): void
     {
         $this->addKeyCount($key);
         $clauses = $this->getClauses();
         $clauses[] = [
             'connector' => 'OR',
-            'key'       => $key,
-            'value'     => $value,
-            'keyCount'  => $this->getKeycount()[$key]
+            'key' => $key,
+            'value' => $value,
+            'keyCount' => $this->getKeycount()[$key]
         ];
         $this->setClauses($clauses);
     }
@@ -93,9 +97,9 @@ class Where {
         $clauses = $this->getClauses();
         $clauses[] = [
             'connector' => 'AND',
-            'key'       => $key,
-            'value'     => $value,
-            'keyCount'  => $this->getKeycount()[$key]
+            'key' => $key,
+            'value' => $value,
+            'keyCount' => $this->getKeycount()[$key]
         ];
         $this->setClauses($clauses);
     }
@@ -108,17 +112,17 @@ class Where {
 
         $returnString = '';
         foreach ($clauses as $clause) {
-
             if ($clause['connector'] !== null) {
                 $returnString .= ' ' . $clause['connector'] . ' ';
             }
 
-            $key       = $clause['key'];
-            $value     = $clause['value'];
-            $keyCount  = (isset($clause['keyCount']) && $clause['keyCount'] !== 1) ? '_'.$clause['keyCount'] : '';
-            $fix       = $key;
-            $usedKey   = $key.$keyCount;
+            $key = $clause['key'];
+            $value = $clause['value'];
+            $keyCount = (isset($clause['keyCount']) && $clause['keyCount'] !== 1) ? '_' . $clause['keyCount'] : '';
+            $fix = $key;
+            $usedKey = $key . $keyCount;
             $connector = ' =';
+            $usedQuery = false;
 
             $usedValue = $value;
             if (is_array($value)) {
@@ -126,25 +130,31 @@ class Where {
                 $givenConnector = $value[0];
             }
 
-            if (!is_array($usedValue)) {
-                $fix          = str_replace('.', '_', $fix);
-                $usedKey      = '`' . str_replace('.', '`.`', $key) . '`';
-                $valuePdoType = $this->retrieveParameterType($usedValue);
-                $connector    = ($valuePdoType !== 0) ? '=' : '<=>';
+            if (is_a($usedValue, '\PhoenixPhp\Database\Query')) {
+                $usedValue = $usedValue->createQueryString();
+                $usedQuery = true;
             } else {
-                $valuePdoType = $this->retrieveParameterType($usedValue);
-                if ($givenConnector === 'IN' || $givenConnector === 'NOT IN') {
-                    if ($valuePdoType === 2) {
-                        $fix = '\'' . implode('\',\'', $usedValue) . '\'';
+                if (!is_array($usedValue)) {
+                    $fix = str_replace('.', '_', $fix);
+                    $usedKey = '`' . str_replace('.', '`.`', $key) . '`';
+                    $valuePdoType = $this->retrieveParameterType($usedValue);
+                    $connector = ($valuePdoType !== 0) ? '=' : '<=>';
+                } else {
+                    $valuePdoType = $this->retrieveParameterType($usedValue);
+                    if ($givenConnector === 'IN' || $givenConnector === 'NOT IN') {
+                        if ($valuePdoType === 2) {
+                            $fix = '\'' . implode('\',\'', $usedValue) . '\'';
+                        } else {
+                            $fix = implode(',', $usedValue);
+                        }
                     } else {
-                        $fix = implode(',', $usedValue);
-                    }
-                } else if ($givenConnector === 'BETWEEN') {
-                    if ($this->isDate($usedKey)) {
-                        $fix = '`' . implode('` AND `', $usedValue) . '`';
-                    }
-                    else {
-                        $fix = '\'' . implode('\' AND \'', $usedValue) . '\'';
+                        if ($givenConnector === 'BETWEEN') {
+                            if (!$this->isDate($usedKey)) {
+                                $fix = '`' . implode('` AND `', $usedValue) . '`';
+                            } else {
+                                $fix = '\'' . implode('\' AND \'', $usedValue) . '\'';
+                            }
+                        }
                     }
                 }
             }
@@ -155,39 +165,44 @@ class Where {
 
             //Kein Parameter-Binding mit NOT NULL
             if ($value === 'NOT NULL') {
-                $returnString .= $usedKey . ' IS NOT NULL AND '. $usedKey .' != ""';
-            }
-            //... und mit IN und NOT IN
-            else if ($connector === 'IN' || $connector === 'NOT IN') {
-                $returnString .= $usedKey . ' ' . $connector . '(' . $fix . ')';
-            }
-            //... und mit BETWEEN
-            else if ($connector === 'BETWEEN') {
-                if($this->isDate($usedKey)) {
-                    $usedKey = preg_replace('/(_.*)/', '', $usedKey);
-                    $usedKey = '"'.$usedKey.'"';
-                }
-                $returnString .= $usedKey . ' ' . $connector . ' ' . $fix;
-            }
-            else if ($connector === 'LIKE') {
-                $returnString .= $usedKey . ' LIKE CONCAT("%", :' . $fix . ', "%")';
-            } else {
-                if ($this->isDate($fix)) {
-                    $checkKey = str_replace('`', '', $usedKey);
-                    if ($this->isDate($checkKey)) {
-                        $usedKey = '"'. $checkKey.'"';
+                $returnString .= $usedKey . ' IS NOT NULL AND ' . $usedKey . ' != ""';
+            } //... und mit IN und NOT IN
+            else {
+                if ($connector === 'IN' || $connector === 'NOT IN') {
+                    if ($usedQuery) {
+                        $returnString .= $usedKey . ' ' . $connector . '('.$usedValue.')';
+                    } else {
+                        $returnString .= $usedKey . ' ' . $connector . '(' . $fix . ')';
                     }
-                    if($this->isDate($usedValue)) {
-                        $usedValue = '"' . $usedValue . '"';
-                    }
-                    else {
-                        $usedValue = '`'.$usedValue.'`';
-                    }
-                    $returnString .= $usedKey . ' ' . $connector . ' ' . $usedValue.'';
-                }
+                } //... und mit BETWEEN
                 else {
-                    $fix .= $keyCount;
-                    $returnString .= $usedKey . ' ' . $connector . ' :' . $fix;
+                    if ($connector === 'BETWEEN') {
+                        if ($this->isDate($usedKey)) {
+                            $usedKey = preg_replace('/(_.*)/', '', $usedKey);
+                            $usedKey = '"' . $usedKey . '"';
+                        }
+                        $returnString .= $usedKey . ' ' . $connector . ' ' . $fix;
+                    } else {
+                        if ($connector === 'LIKE') {
+                            $returnString .= $usedKey . ' LIKE CONCAT("%", :' . $fix . ', "%")';
+                        } else {
+                            if ($this->isDate($fix)) {
+                                $checkKey = str_replace('`', '', $usedKey);
+                                if ($this->isDate($checkKey)) {
+                                    $usedKey = '"' . $checkKey . '"';
+                                }
+                                if ($this->isDate($usedValue)) {
+                                    $usedValue = '"' . $usedValue . '"';
+                                } else {
+                                    $usedValue = '`' . $usedValue . '`';
+                                }
+                                $returnString .= $usedKey . ' ' . $connector . ' ' . $usedValue . '';
+                            } else {
+                                $fix .= $keyCount;
+                                $returnString .= $usedKey . ' ' . $connector . ' :' . $fix;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -195,38 +210,48 @@ class Where {
         return '(' . $returnString . ')';
     }
 
-    private function addKeyCount(string $key) : void {
+    private function addKeyCount(string $key): void
+    {
         $keys = $this->getKeycount();
-        if(!isset($keys[$key])) {
+        if (!isset($keys[$key])) {
             $keys[$key] = 0;
         }
         $keys[$key]++;
         $this->setKeyCount($keys);
     }
 
-    public function retrieveParameters() : array {
+    public function retrieveParameters(): array
+    {
         $clauses = $this->getClauses();
 
         $parameters = [];
-        foreach($clauses as $clause) {
-            $key      = $clause['key'];
-            $value    = $clause['value'];
+        foreach ($clauses as $clause) {
+            $key = $clause['key'];
+            $value = $clause['value'];
             $keyCount = (isset($clause['keyCount']) && $clause['keyCount'] !== 1) ? '_' . $clause['keyCount'] : '';
+            $usedQuery = false;
 
-            if($value === 'IS NULL') {
+            if ($value === 'IS NULL') {
                 continue;
             }
 
             $usedValue = $value;
-            if(is_array($value)) {
+            if (is_array($value)) {
                 $usedValue = $value[1];
             }
 
-            $key          = str_replace('.', '_', $key);
-            $valuePdoType = $this->retrieveParameterType($usedValue);
+            if (is_a($usedValue, '\PhoenixPhp\Database\Query')) {
+                $usedValue = $usedValue->createQueryString();
+                $valuePdoType = PDO::PARAM_STR;
+                $usedQuery = true;
+                return [];
+            } else {
+                $key = str_replace('.', '_', $key);
+                $valuePdoType = $this->retrieveParameterType($usedValue);
+            }
 
-            if(!$this->isDate($key)) {
-                $parameters[] = ['placeholder' => $key.$keyCount, 'value' => $usedValue, 'type' => $valuePdoType];
+            if (!$this->isDate($key)) {
+                $parameters[] = ['placeholder' => $key . $keyCount, 'value' => $usedValue, 'type' => $valuePdoType, 'usedQuery' => $usedQuery];
             }
         }
         return $parameters;
@@ -249,16 +274,19 @@ class Where {
         $type = gettype($usedValue);
         if ($type === 'boolean') {
             return PDO::PARAM_BOOL;
-        } else if ($type === 'integer') {
+        } elseif ($type === 'integer') {
             return PDO::PARAM_INT;
-        } else if ($type === 'double') {
+        } elseif ($type === 'double') {
             return PDO::PARAM_STR;
-        } else if ($type === 'string') {
+        } elseif ($type === 'string') {
             return PDO::PARAM_STR;
-        } else if ($type === 'NULL') {
+        } elseif ($type === 'NULL') {
             return PDO::PARAM_NULL;
         } else {
-            $error = 'Der Parameter ' . print_r($usedValue, true) . ' hat einen ungültigen Typ: ' . $type;
+            $error = 'Der Parameter ' . print_r(
+                    $usedValue,
+                    true
+                ) . ' hat einen ungültigen Typ: ' . $type;
             throw new Exception($error);
         }
     }
@@ -266,15 +294,14 @@ class Where {
     /**
      * Diese Funktion prüft, ob es sich bei dem übergebenen String um ein Datum handelt
      *
-     * @param string $string    der String, der geprüft wird
+     * @param string $string der String, der geprüft wird
      * @return bool             true: Es ist ein Datum, false: Es ist kein Datum
      */
     private function isDate(string $string): bool
     {
-        if(strtotime($string)) {
+        if (strtotime($string)) {
             return true;
         }
         return false;
     }
-
 }
