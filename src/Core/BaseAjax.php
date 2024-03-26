@@ -35,6 +35,9 @@ abstract class BaseAjax
 
         if ($parameters !== null) {
             foreach ($parameters as $parameter => $value) {
+                if ($parameter === 'phoenix') {
+                    continue;
+                }
                 $camelParam = StringConversion::toCamelCase($parameter);
                 $methodName = 'validate' . ucfirst($camelParam);
                 if (getenv('DEVELOPER')) {
@@ -47,13 +50,15 @@ abstract class BaseAjax
                         break;
                     }
                 }
-                $valid = $this->$methodName($value);
-                if ($valid === false) {
-                    $logger = new Logger();
-                    $logger->debug(
-                        $methodName . '(): The value "' . $value . '" for "' . $parameter . '" is invalid.'
-                    );
-                    break;
+                if (method_exists($this, $methodName)) {
+                    $valid = $this->$methodName($value);
+                    if ($valid === false) {
+                        $logger = new Logger();
+                        $logger->debug(
+                            $methodName . '(): The value "' . $value . '" for "' . $parameter . '" is invalid.'
+                        );
+                        break;
+                    }
                 }
             }
         }
