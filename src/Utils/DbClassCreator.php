@@ -271,7 +271,7 @@ class DbClassCreator
     {
         if (in_array($val, ['tinyint(1)'])) {
             $val = 'bool';
-        } elseif (stristr($val, 'int') || $val === 'smallint') {
+        } elseif (stristr($val, 'int') || $val === 'smallint' || $val === 'year(4)') {
             $val = 'Int';
         } elseif (stristr($val, 'varchar') || $val === 'text') {
             $val = 'string';
@@ -305,7 +305,7 @@ class DbClassCreator
             }
         } elseif (in_array($val, ['tinyint(1)'])) {
             $type = 'Bool';
-        } elseif (stristr($val, 'int')) {
+        } elseif (stristr($val, 'int') || $val === 'year(4)') {
             $type = 'Int';
         } elseif (in_array($val, ['datetime', 'date', 'timestamp'])) {
             $type = 'DateTime';
